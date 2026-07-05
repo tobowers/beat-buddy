@@ -27,6 +27,10 @@ export type Settings = {
   speed: Speed;
   roundSeconds: 20 | 30 | 60;
   feedback: FeedbackMode;
+  /** Huge HUD text for playing from across the room */
+  bigUi: boolean;
+  /** Show a big "do this move" figure card during play */
+  showMoves: boolean;
 };
 
 export const BPM: Record<Speed, number> = {

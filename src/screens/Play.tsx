@@ -189,13 +189,22 @@ export function Play({
         </div>
 
         <div className="play-hud-bottom">
-          {step && (
+          {step && settings.showMoves && (
             <div className={`move-card color-${game.color}`} key={`move-${scoredIdx}`}>
-              <Figure pose={step.expected} size={72} accent={`var(--${game.color})`} />
+              <Figure
+                pose={step.expected}
+                size={settings.bigUi ? 160 : 72}
+                accent={`var(--${game.color})`}
+              />
               <div>
                 <div className="move-label">{step.label}</div>
                 <BeatDots count={len} active={stepIdx} color={`var(--${game.color})`} />
               </div>
+            </div>
+          )}
+          {step && !settings.showMoves && (
+            <div className="move-label-bare" key={`movebare-${scoredIdx}`}>
+              {step.label}
             </div>
           )}
           {settings.feedback === "gentle" && beatIdx >= COUNT_IN && (

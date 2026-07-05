@@ -154,6 +154,46 @@ export function Setup({
             </div>
           </div>
 
+          <div className="setting-group">
+            <h3>Playing far from the screen?</h3>
+            <div className="chip-row">
+              <button
+                className={`chip ${settings.bigUi ? "chip-on" : ""}`}
+                onClick={() => onSettings({ ...settings, bigUi: true })}
+              >
+                Huge text
+                <small>stand way back</small>
+              </button>
+              <button
+                className={`chip ${!settings.bigUi ? "chip-on" : ""}`}
+                onClick={() => onSettings({ ...settings, bigUi: false })}
+              >
+                Normal
+                <small>up close</small>
+              </button>
+            </div>
+          </div>
+
+          <div className="setting-group">
+            <h3>Move pictures</h3>
+            <div className="chip-row">
+              <button
+                className={`chip ${settings.showMoves ? "chip-on" : ""}`}
+                onClick={() => onSettings({ ...settings, showMoves: true })}
+              >
+                Show each move
+                <small>big helper figure</small>
+              </button>
+              <button
+                className={`chip ${!settings.showMoves ? "chip-on" : ""}`}
+                onClick={() => onSettings({ ...settings, showMoves: false })}
+              >
+                Words only
+                <small>I know the moves!</small>
+              </button>
+            </div>
+          </div>
+
           <button className={`btn btn-big btn-${game.color}`} onClick={onReady}>
             Show me the moves ➜
           </button>

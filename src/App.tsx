@@ -15,12 +15,20 @@ type Screen = "pick" | "setup" | "demo" | "play" | "result" | "balance-pick" | "
 
 const SETTINGS_KEY = "beat-buddy-settings";
 
+const DEFAULT_SETTINGS: Settings = {
+  speed: "slow",
+  roundSeconds: 30,
+  feedback: "gentle",
+  bigUi: true,
+  showMoves: true,
+};
+
 function loadSettings(): Settings {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
-    if (raw) return { speed: "slow", roundSeconds: 30, feedback: "gentle", ...JSON.parse(raw) };
+    if (raw) return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
   } catch {}
-  return { speed: "slow", roundSeconds: 30, feedback: "gentle" };
+  return DEFAULT_SETTINGS;
 }
 
 export function App() {
@@ -42,7 +50,16 @@ export function App() {
   }, [screen]);
 
   return (
-    <div className="app">
+    <div className={`app ${settings.bigUi ? "big-ui" : ""}`}>
+      {(screen === "pick" || screen === "balance-pick") && (
+        <button
+          className={`ui-size-toggle ${settings.bigUi ? "on" : ""}`}
+          onClick={() => setSettings((s) => ({ ...s, bigUi: !s.bigUi }))}
+          title="Make in-game text huge for playing far from the screen"
+        >
+          🔠 Huge text: {settings.bigUi ? "ON" : "OFF"}
+        </button>
+      )}
       {screen === "pick" && (
         <Pick
           onPick={(g) => {

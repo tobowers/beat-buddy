@@ -1052,3 +1052,134 @@ button {
   opacity: 1;
   transform: scale(1.12);
 }
+
+/* ============================================================
+   HUGE TEXT MODE — readable from across the room
+   Scales the in-game HUD only; menus stay normal (used up close).
+   ============================================================ */
+
+.ui-size-toggle {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 50;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--ink);
+  background: var(--white);
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  padding: 8px 18px;
+  box-shadow: 3px 3px 0 rgba(51, 51, 92, 0.25);
+  transition: transform 0.1s ease;
+}
+.ui-size-toggle:hover { transform: translateY(-2px); }
+.ui-size-toggle.on {
+  background: var(--sun);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+/* label-only mode (move pictures off) */
+.move-label-bare {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 2rem;
+  color: var(--white);
+  text-shadow: 3px 3px 0 var(--ink);
+  animation: label-pop 0.25s ease;
+}
+
+/* --- metronome play HUD --- */
+.big-ui .move-card {
+  gap: 22px;
+  padding: 18px 36px 18px 20px;
+  border-radius: 30px;
+  border-width: 4px;
+}
+.big-ui .move-label {
+  font-size: clamp(2rem, 6vw, 3.2rem);
+  margin-bottom: 10px;
+}
+.big-ui .move-card .beat-dot {
+  width: 30px;
+  height: 30px;
+}
+.big-ui .move-label-bare {
+  font-size: clamp(2.4rem, 8vw, 4rem);
+}
+.big-ui .play-timer,
+.big-ui .play-hits {
+  font-size: clamp(2rem, 6vw, 3rem);
+  text-shadow: 3px 3px 0 var(--ink);
+}
+.big-ui .btn-quit {
+  font-size: 2rem;
+  padding: 8px 20px;
+}
+.big-ui .cheer {
+  font-size: clamp(1.6rem, 5vw, 2.4rem);
+}
+.big-ui .body-warn {
+  font-size: 1.7rem;
+  padding: 12px 30px;
+}
+.big-ui .countin span {
+  font-size: clamp(9rem, 30vw, 14rem);
+}
+.big-ui .countin p {
+  font-size: clamp(2rem, 6vw, 3rem);
+}
+.big-ui .hit-burst {
+  font-size: 8rem;
+}
+.big-ui .beat-ring {
+  width: 90px;
+  height: 90px;
+  margin-left: -45px;
+  border-width: 9px;
+}
+.big-ui .play-progress {
+  height: 20px;
+}
+.big-ui .cam-status {
+  font-size: 2rem;
+}
+
+/* --- balance games HUD --- */
+.big-ui .big-timer {
+  padding: 18px 44px;
+  border-radius: 30px;
+  border-width: 4px;
+}
+.big-ui .big-timer-num {
+  font-size: clamp(4.5rem, 14vw, 7rem);
+}
+.big-ui .big-timer-label {
+  font-size: clamp(1.8rem, 5vw, 2.6rem);
+}
+.big-ui .hold-bar {
+  height: 46px;
+  border-width: 4px;
+  width: min(560px, 86%);
+}
+.big-ui .stage-card {
+  font-size: clamp(1.7rem, 5vw, 2.4rem);
+  max-width: 640px;
+  padding: 20px 34px;
+}
+.big-ui .side-chip {
+  font-size: 1.35rem;
+  padding: 8px 22px;
+}
+.big-ui .grow-stage {
+  font-size: 1.5rem;
+}
+.big-ui .grow-stages {
+  padding: 10px 28px;
+}
+
+/* demo screen label (watched from a distance too) */
+.big-ui .demo-label {
+  font-size: clamp(2rem, 6vw, 3rem);
+}
