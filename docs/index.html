@@ -1,0 +1,861 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>How Beat Buddy Works — Technical Documentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #fff6e8;
+    --ink: #33335c;
+    --ink-soft: rgba(51, 51, 92, 0.6);
+    --white: #fffdf8;
+    --coral: #ff6b6b;
+    --coral-soft: #ffe3dd;
+    --teal: #1fbfae;
+    --teal-soft: #d7f4ef;
+    --grape: #9b5de5;
+    --grape-soft: #ede1fc;
+    --sun: #ffc53d;
+    --sun-soft: #fff0cd;
+    --sky: #4cc9f0;
+    --grass: #57cc75;
+    --code-bg: #2b2b4a;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: "Nunito", sans-serif;
+    font-weight: 600;
+    font-size: 16.5px;
+    line-height: 1.65;
+    color: var(--ink);
+    background-color: var(--paper);
+    background-image: radial-gradient(circle, rgba(51, 51, 92, 0.08) 2.4px, transparent 2.4px);
+    background-size: 36px 36px;
+  }
+
+  h1, h2, h3, h4 { font-family: "Fredoka", sans-serif; line-height: 1.2; }
+
+  .wrap {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 40px 24px 100px;
+  }
+
+  /* ---------- header ---------- */
+  header.doc-hero {
+    text-align: center;
+    padding: 30px 0 40px;
+  }
+  .doc-hero h1 {
+    font-size: clamp(2.4rem, 7vw, 3.8rem);
+    font-weight: 700;
+    margin: 0 0 6px;
+  }
+  .doc-hero h1 .a { color: var(--coral); }
+  .doc-hero h1 .b { color: var(--teal); }
+  .doc-hero p.sub {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+  .doc-hero .badge-row {
+    margin-top: 18px;
+    display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+  }
+  .badge {
+    font-family: "Fredoka", sans-serif;
+    font-size: 0.85rem;
+    padding: 5px 14px;
+    border: 2.5px solid var(--ink);
+    border-radius: 999px;
+    background: var(--white);
+    box-shadow: 3px 3px 0 rgba(51,51,92,.25);
+  }
+
+  /* ---------- toc ---------- */
+  nav.toc {
+    background: var(--white);
+    border: 3px solid var(--ink);
+    border-radius: 24px;
+    box-shadow: 7px 7px 0 var(--sun);
+    padding: 24px 30px;
+    margin-bottom: 48px;
+  }
+  nav.toc h2 { margin: 0 0 10px; font-size: 1.3rem; }
+  nav.toc ol {
+    margin: 0; padding-left: 22px;
+    columns: 2; column-gap: 40px;
+  }
+  @media (max-width: 640px) { nav.toc ol { columns: 1; } }
+  nav.toc li { margin: 4px 0; break-inside: avoid; }
+  nav.toc a { color: var(--ink); text-decoration: none; border-bottom: 2px solid var(--teal); }
+  nav.toc a:hover { color: var(--teal); }
+
+  /* ---------- sections ---------- */
+  section { margin-bottom: 56px; }
+  section > h2 {
+    font-size: 1.9rem;
+    font-weight: 700;
+    margin: 0 0 18px;
+    padding-bottom: 8px;
+    border-bottom: 4px solid var(--ink);
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+  section > h2 .num {
+    font-size: 1.1rem;
+    color: var(--white);
+    background: var(--ink);
+    border-radius: 10px;
+    padding: 2px 10px;
+    transform: translateY(-3px);
+  }
+  h3 { font-size: 1.3rem; font-weight: 600; margin: 28px 0 10px; }
+  h4 { font-size: 1.05rem; font-weight: 600; margin: 20px 0 8px; }
+  p { margin: 0 0 14px; }
+  ul, ol { margin: 0 0 14px; padding-left: 26px; }
+  li { margin: 4px 0; }
+  strong { font-weight: 800; }
+
+  a { color: var(--grape); }
+
+  /* ---------- callouts ---------- */
+  .callout {
+    border: 3px solid var(--ink);
+    border-radius: 18px;
+    padding: 14px 20px;
+    margin: 18px 0;
+    font-weight: 700;
+  }
+  .callout.teal { background: var(--teal-soft); box-shadow: 5px 5px 0 var(--teal); }
+  .callout.coral { background: var(--coral-soft); box-shadow: 5px 5px 0 var(--coral); }
+  .callout.sun { background: var(--sun-soft); box-shadow: 5px 5px 0 var(--sun); }
+  .callout.grape { background: var(--grape-soft); box-shadow: 5px 5px 0 var(--grape); }
+  .callout .label {
+    font-family: "Fredoka", sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.78rem;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  /* ---------- code ---------- */
+  code {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.85em;
+    background: rgba(51, 51, 92, 0.08);
+    border-radius: 6px;
+    padding: 1px 6px;
+  }
+  pre {
+    background: var(--code-bg);
+    color: #eceaf6;
+    border: 3px solid var(--ink);
+    border-radius: 16px;
+    box-shadow: 5px 5px 0 rgba(51,51,92,.3);
+    padding: 18px 22px;
+    overflow-x: auto;
+    font-size: 0.83rem;
+    line-height: 1.55;
+    margin: 16px 0 22px;
+  }
+  pre code { background: none; padding: 0; color: inherit; font-size: inherit; }
+  pre .c { color: #8f8fb8; }        /* comment */
+  pre .k { color: #ff9d9d; }        /* keyword */
+  pre .s { color: #ffd98a; }        /* string */
+  pre .f { color: #7fe0d4; }        /* function/ident */
+  pre .n { color: #c9a6f5; }        /* number */
+
+  /* ---------- tables ---------- */
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 3px solid var(--ink);
+    border-radius: 16px;
+    overflow: hidden;
+    margin: 16px 0 22px;
+    background: var(--white);
+    box-shadow: 5px 5px 0 rgba(51,51,92,.2);
+    font-size: 0.92rem;
+  }
+  th {
+    font-family: "Fredoka", sans-serif;
+    font-weight: 600;
+    text-align: left;
+    background: var(--ink);
+    color: var(--white);
+    padding: 10px 16px;
+  }
+  td { padding: 9px 16px; border-top: 2px solid rgba(51,51,92,.12); vertical-align: top; }
+  tr:nth-child(even) td { background: rgba(51,51,92,.035); }
+  td code { white-space: nowrap; }
+
+  /* ---------- diagrams ---------- */
+  figure {
+    margin: 22px 0 26px;
+    text-align: center;
+  }
+  figure svg {
+    max-width: 100%;
+    height: auto;
+    background: var(--white);
+    border: 3px solid var(--ink);
+    border-radius: 20px;
+    box-shadow: 6px 6px 0 rgba(51,51,92,.2);
+  }
+  figcaption {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--ink-soft);
+    margin-top: 10px;
+  }
+
+  .file-tree { font-family: "JetBrains Mono", monospace; font-size: 0.85rem; }
+
+  footer {
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    font-weight: 800;
+    padding-top: 30px;
+    border-top: 3px dashed rgba(51,51,92,.25);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc-hero">
+  <h1><span class="a">Beat</span> <span class="b">Buddy</span> — How It Works</h1>
+  <p class="sub">Technical documentation for the metronome movement checker</p>
+  <div class="badge-row">
+    <span class="badge">Bun + HTML imports</span>
+    <span class="badge">React 19</span>
+    <span class="badge">MediaPipe Pose</span>
+    <span class="badge">Web Audio API</span>
+    <span class="badge">100% on-device</span>
+  </div>
+</header>
+
+<nav class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#goal">What this app is (and isn't)</a></li>
+    <li><a href="#architecture">Architecture at a glance</a></li>
+    <li><a href="#screens">Screen flow</a></li>
+    <li><a href="#games">Games &amp; patterns</a></li>
+    <li><a href="#metronome">The metronome</a></li>
+    <li><a href="#pose">Pose estimation pipeline</a></li>
+    <li><a href="#detection">Movement event detection</a></li>
+    <li><a href="#scoring">Scoring engine</a></li>
+    <li><a href="#feedback">Feedback philosophy</a></li>
+    <li><a href="#privacy">Privacy model</a></li>
+    <li><a href="#files">File map</a></li>
+    <li><a href="#testing">Testing</a></li>
+    <li><a href="#tuning">Tuning &amp; extending</a></li>
+  </ol>
+</nav>
+
+<!-- ============================================================ -->
+<section id="goal">
+  <h2><span class="num">1</span> What this app is (and isn't)</h2>
+  <p>
+    Beat Buddy is a browser game that answers one question:
+    <strong>“Can you do this movement pattern with the beat for 20–60 seconds?”</strong>
+    A child picks a rhythm game, watches an animated demo, then performs the pattern in
+    front of the webcam while a metronome plays. The app detects approximate movement
+    events (a clap, an opposite hand-to-knee touch, a starfish shape) and checks whether
+    each one landed inside a forgiving timing window around the beat.
+  </p>
+  <p>
+    It supports an occupational-therapy-style home practice routine: rhythm, bilateral
+    coordination, crossing the midline, motor planning, and sustained structured movement.
+    The emotional-regulation benefit is <em>indirect</em> — building repeatable body skills
+    during calm moments so the child has a stronger foundation over time.
+  </p>
+  <div class="callout coral">
+    <span class="label">Framing rules</span>
+    The app is a movement practice game, <strong>not</strong> a behavior-management tool.
+    It never asks "are you calm?", never frames play as therapy or as fixing feelings, and
+    is meant to be used when the child is already regulated enough to play — never during
+    a meltdown or power struggle.
+  </div>
+  <p>
+    Technically, it does <strong>not</strong> certify perfect form. It verifies that the child
+    is visible, is attempting the expected movement, is roughly in rhythm, alternates
+    left/right roughly correctly, and can sustain the pattern for a short round. Success is
+    deliberately achievable.
+  </p>
+</section>
+
+<!-- ============================================================ -->
+<section id="architecture">
+  <h2><span class="num">2</span> Architecture at a glance</h2>
+  <p>
+    Everything runs in the browser. The Bun server (<code>index.ts</code>) does one thing:
+    serve <code>index.html</code>, which imports <code>src/frontend.tsx</code>. Bun's bundler
+    transpiles the React/TypeScript on the fly (with hot reload in dev). There is no backend
+    state, no database, no API.
+  </p>
+  <p>Two independent clocks drive a round, and the scoring engine sits where they meet:</p>
+
+  <figure>
+    <svg viewBox="0 0 760 340" width="760" font-family="Nunito, sans-serif" font-weight="700" font-size="14">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#33335c"/>
+        </marker>
+      </defs>
+      <!-- camera path -->
+      <rect x="30" y="40" width="130" height="52" rx="14" fill="#d7f4ef" stroke="#33335c" stroke-width="3"/>
+      <text x="95" y="62" text-anchor="middle" fill="#33335c">Webcam</text>
+      <text x="95" y="80" text-anchor="middle" fill="#33335c" font-size="11">getUserMedia</text>
+
+      <rect x="220" y="40" width="160" height="52" rx="14" fill="#d7f4ef" stroke="#33335c" stroke-width="3"/>
+      <text x="300" y="62" text-anchor="middle" fill="#33335c">PoseLandmarker</text>
+      <text x="300" y="80" text-anchor="middle" fill="#33335c" font-size="11">33 landmarks / frame</text>
+
+      <rect x="440" y="40" width="150" height="52" rx="14" fill="#d7f4ef" stroke="#33335c" stroke-width="3"/>
+      <text x="515" y="62" text-anchor="middle" fill="#33335c">EventDetector</text>
+      <text x="515" y="80" text-anchor="middle" fill="#33335c" font-size="11">edge-triggered events</text>
+
+      <!-- metronome path -->
+      <rect x="30" y="150" width="130" height="52" rx="14" fill="#ffe3dd" stroke="#33335c" stroke-width="3"/>
+      <text x="95" y="172" text-anchor="middle" fill="#33335c">Metronome</text>
+      <text x="95" y="190" text-anchor="middle" fill="#33335c" font-size="11">Web Audio clock</text>
+
+      <rect x="220" y="150" width="160" height="52" rx="14" fill="#ffe3dd" stroke="#33335c" stroke-width="3"/>
+      <text x="300" y="172" text-anchor="middle" fill="#33335c">Beat schedule</text>
+      <text x="300" y="190" text-anchor="middle" fill="#33335c" font-size="11">perfTime per beat</text>
+
+      <!-- scorer -->
+      <rect x="440" y="150" width="150" height="52" rx="14" fill="#fff0cd" stroke="#33335c" stroke-width="3"/>
+      <text x="515" y="172" text-anchor="middle" fill="#33335c">Scorer</text>
+      <text x="515" y="190" text-anchor="middle" fill="#33335c" font-size="11">event ↔ beat matching</text>
+
+      <!-- result -->
+      <rect x="440" y="258" width="150" height="52" rx="14" fill="#ede1fc" stroke="#33335c" stroke-width="3"/>
+      <text x="515" y="280" text-anchor="middle" fill="#33335c">RoundResult</text>
+      <text x="515" y="298" text-anchor="middle" fill="#33335c" font-size="11">hits · streak · offsets</text>
+
+      <!-- skeleton overlay -->
+      <rect x="620" y="40" width="120" height="52" rx="14" fill="#fffdf8" stroke="#33335c" stroke-width="3" stroke-dasharray="6 5"/>
+      <text x="680" y="62" text-anchor="middle" fill="#33335c">Canvas</text>
+      <text x="680" y="80" text-anchor="middle" fill="#33335c" font-size="11">skeleton overlay</text>
+
+      <!-- audio out -->
+      <rect x="620" y="150" width="120" height="52" rx="14" fill="#fffdf8" stroke="#33335c" stroke-width="3" stroke-dasharray="6 5"/>
+      <text x="680" y="172" text-anchor="middle" fill="#33335c">Speakers</text>
+      <text x="680" y="190" text-anchor="middle" fill="#33335c" font-size="11">tick + hit blip</text>
+
+      <!-- arrows -->
+      <line x1="160" y1="66" x2="216" y2="66" stroke="#33335c" stroke-width="3" marker-end="url(#arr)"/>
+      <line x1="380" y1="66" x2="436" y2="66" stroke="#33335c" stroke-width="3" marker-end="url(#arr)"/>
+      <line x1="590" y1="66" x2="616" y2="66" stroke="#33335c" stroke-width="3" marker-end="url(#arr)"/>
+      <line x1="160" y1="176" x2="216" y2="176" stroke="#33335c" stroke-width="3" marker-end="url(#arr)"/>
+      <line x1="380" y1="176" x2="436" y2="176" stroke="#33335c" stroke-width="3" marker-end="url(#arr)"/>
+      <line x1="590" y1="176" x2="616" y2="176" stroke="#33335c" stroke-width="3" marker-end="url(#arr)"/>
+      <line x1="515" y1="92" x2="515" y2="146" stroke="#33335c" stroke-width="3" marker-end="url(#arr)"/>
+      <line x1="515" y1="202" x2="515" y2="254" stroke="#33335c" stroke-width="3" marker-end="url(#arr)"/>
+
+      <text x="530" y="122" fill="#33335c" font-size="12">events + timestamps</text>
+      <text x="530" y="232" fill="#33335c" font-size="12">finalize() at round end</text>
+    </svg>
+    <figcaption>Data flow during a round. The camera path (teal) and the audio path (coral) run
+    independently; the Scorer (yellow) joins them on a shared <code>performance.now()</code> timeline.</figcaption>
+  </figure>
+
+  <div class="callout teal">
+    <span class="label">Key idea</span>
+    Movement events are timestamped with <code>performance.now()</code> as frames are processed,
+    and every metronome beat is scheduled ahead of time with a known
+    <code>performance.now()</code>-domain timestamp. Scoring is then just: <em>did an event of the
+    expected type land within ±400&nbsp;ms of the beat's timestamp?</em> No frame-rate coupling,
+    no polling.
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="screens">
+  <h2><span class="num">3</span> Screen flow</h2>
+  <p>
+    <code>src/App.tsx</code> is a tiny state machine — a <code>screen</code> value plus the chosen
+    game, settings, and last result. No router.
+  </p>
+
+  <figure>
+    <svg viewBox="0 0 740 120" width="740" font-family="Fredoka, sans-serif" font-weight="600" font-size="15">
+      <defs>
+        <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#33335c"/>
+        </marker>
+      </defs>
+      <g stroke="#33335c" stroke-width="3">
+        <rect x="20"  y="35" width="110" height="46" rx="23" fill="#ffe3dd"/>
+        <rect x="175" y="35" width="110" height="46" rx="23" fill="#d7f4ef"/>
+        <rect x="330" y="35" width="110" height="46" rx="23" fill="#ede1fc"/>
+        <rect x="485" y="35" width="110" height="46" rx="23" fill="#fff0cd"/>
+        <rect x="625" y="35" width="100" height="46" rx="23" fill="#fffdf8"/>
+      </g>
+      <text x="75"  y="63" text-anchor="middle" fill="#33335c">Pick</text>
+      <text x="230" y="63" text-anchor="middle" fill="#33335c">Setup</text>
+      <text x="385" y="63" text-anchor="middle" fill="#33335c">Demo</text>
+      <text x="540" y="63" text-anchor="middle" fill="#33335c">Play</text>
+      <text x="675" y="63" text-anchor="middle" fill="#33335c">Result</text>
+      <g stroke="#33335c" stroke-width="3">
+        <line x1="130" y1="58" x2="171" y2="58" marker-end="url(#arr2)"/>
+        <line x1="285" y1="58" x2="326" y2="58" marker-end="url(#arr2)"/>
+        <line x1="440" y1="58" x2="481" y2="58" marker-end="url(#arr2)"/>
+        <line x1="595" y1="58" x2="621" y2="58" marker-end="url(#arr2)"/>
+      </g>
+      <path d="M 660 35 Q 610 -10 540 30" fill="none" stroke="#1fbfae" stroke-width="3" marker-end="url(#arr2)"/>
+      <path d="M 645 81 Q 380 150 80 84" fill="none" stroke="#ff6b6b" stroke-width="3" marker-end="url(#arr2)"/>
+      <text x="600" y="14" fill="#1fbfae" font-size="12" font-family="Nunito">again / slower</text>
+      <text x="330" y="116" fill="#ff6b6b" font-size="12" font-family="Nunito">pick another game</text>
+    </svg>
+    <figcaption>The five screens. "Again" and "Try it slower" jump straight back into Play.</figcaption>
+  </figure>
+
+  <table>
+    <tr><th>Screen</th><th>File</th><th>What happens</th></tr>
+    <tr><td><strong>Pick</strong></td><td><code>screens/Pick.tsx</code></td>
+      <td>Three game cards with pose previews and a parent-facing privacy note. Arriving here
+      releases the camera (<code>stopCamera()</code>).</td></tr>
+    <tr><td><strong>Setup</strong></td><td><code>screens/Setup.tsx</code></td>
+      <td>Live camera preview with skeleton overlay. The card border turns green when
+      <code>fullBodyVisible()</code> passes ("Stand back so your whole body fits"). Speed,
+      round length, and feedback mode chips — persisted to <code>localStorage</code>.</td></tr>
+    <tr><td><strong>Demo</strong></td><td><code>screens/Demo.tsx</code></td>
+      <td>The metronome plays at the chosen BPM while an animated SVG stick figure performs the
+      pattern, one move per beat, looping until the child taps "I'm ready".</td></tr>
+    <tr><td><strong>Play</strong></td><td><code>screens/Play.tsx</code></td>
+      <td>The real round: 4-beat count-in, then camera + metronome + scoring together.
+      Shows the current expected move, beat pulse, timer, and (in Score mode) a hit counter.</td></tr>
+    <tr><td><strong>Result</strong></td><td><code>screens/Result.tsx</code></td>
+      <td>Stars, encouragement tier, and stats appropriate to the feedback mode. Confetti at
+      ≥70%. Buttons: play again, try it slower, pick another game.</td></tr>
+  </table>
+
+  <div class="callout grape">
+    <span class="label">Mirror convention</span>
+    The demo figure and camera view are both mirrored like a bathroom mirror: the child's
+    <em>left</em> hand corresponds to the limb on the <em>viewer's left</em>. The video and canvas
+    get <code>transform: scaleX(-1)</code>; detection logic uses the person's own left/right
+    landmarks, so mirroring never affects scoring.
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="games">
+  <h2><span class="num">4</span> Games &amp; patterns</h2>
+  <p>
+    A game is just data — an id, a color, and a list of beat steps
+    (<code>src/games.ts</code>). The pattern repeats for the whole round.
+  </p>
+<pre><code><span class="k">type</span> <span class="f">BeatStep</span> = {
+  beat: <span class="f">number</span>;
+  expected: <span class="f">MovementEvent</span>;  <span class="c">// "CLAP" | "LEFT_HAND_RIGHT_KNEE" | "RIGHT_HAND_LEFT_KNEE" | "STARFISH"</span>
+  label: <span class="f">string</span>;             <span class="c">// kid-facing text shown during demo + play</span>
+};</code></pre>
+
+  <table>
+    <tr><th>Game</th><th>Pattern (repeats)</th><th>Why it's in the MVP</th></tr>
+    <tr>
+      <td><strong>Cross-Crawl March</strong><br><small>Warm-up · teal</small></td>
+      <td>left hand→right knee · right hand→left knee</td>
+      <td>Easiest to detect, strong bilateral-coordination fit, no floor setup.</td>
+    </tr>
+    <tr>
+      <td><strong>Starfish Cross</strong><br><small>Twisty · grape</small></td>
+      <td>starfish · right hand→left knee · starfish · left hand→right knee</td>
+      <td>Clear "home position" gives visual structure; crosses the midline.</td>
+    </tr>
+    <tr>
+      <td><strong>Clap-Knee</strong><br><small>Tricky · coral</small></td>
+      <td>clap · right hand→left knee · clap · left hand→right knee</td>
+      <td>Fun and rhythmic; clap detection is slightly less reliable, hence "Tricky".</td>
+    </tr>
+  </table>
+
+  <h3>Settings</h3>
+  <table>
+    <tr><th>Setting</th><th>Options</th><th>Default</th></tr>
+    <tr><td>Speed</td><td>Slow 50 BPM · Medium 60 BPM · Fast 75 BPM</td><td>Slow</td></tr>
+    <tr><td>Round length</td><td>20s · 30s · 60s</td><td>30s</td></tr>
+    <tr><td>Feedback</td><td>Gentle (cheers) · Score (numbers) · Quiet (just plays)</td><td>Gentle</td></tr>
+  </table>
+  <p>
+    The number of scored beats is <code>floor(seconds × bpm / 60 / patternLength) × patternLength</code>
+    — rounded down to a whole number of pattern repetitions so a round never ends mid-pattern
+    (e.g. 30s at 50 BPM with a 2-step pattern → 24 scored beats).
+  </p>
+</section>
+
+<!-- ============================================================ -->
+<section id="metronome">
+  <h2><span class="num">5</span> The metronome</h2>
+  <p>
+    <code>src/metronome.ts</code> uses the <strong>Web Audio API</strong>, not
+    <code>setInterval</code>, for the actual tick timing. JavaScript timers jitter by tens of
+    milliseconds under load; the audio hardware clock does not. The implementation is the
+    classic <em>lookahead scheduler</em>:
+  </p>
+  <ol>
+    <li>A coarse <code>setInterval(25ms)</code> loop wakes the scheduler.</li>
+    <li>Each wake, it schedules every tick that falls within the next 150 ms
+        <em>on the AudioContext clock</em> (<code>osc.start(when)</code>), where they play with
+        sample-accurate timing regardless of main-thread jank.</li>
+    <li>Accented ticks (988 Hz vs 660 Hz) mark beat 1 of each pattern repetition.</li>
+  </ol>
+
+  <h3>Bridging the two clocks</h3>
+  <p>
+    Pose events are timestamped with <code>performance.now()</code>, but audio runs on
+    <code>ctx.currentTime</code>. The metronome computes the <em>entire</em> beat schedule up
+    front, anchored in both domains at the same instant:
+  </p>
+<pre><code><span class="k">const</span> spb        = <span class="n">60</span> / bpm;                     <span class="c">// seconds per beat</span>
+<span class="k">const</span> startAudio = ctx.currentTime + <span class="n">0.35</span>;      <span class="c">// audio-clock anchor</span>
+<span class="k">const</span> startPerf  = performance.now() + <span class="n">350</span>;     <span class="c">// same instant, perf-clock</span>
+
+<span class="c">// beat i plays at startAudio + i*spb  (audio domain)</span>
+<span class="c">// beat i "is"    at startPerf  + i*spb*1000 (perf domain — used by the Scorer)</span></code></pre>
+  <p>
+    Clock drift between the two domains over a 60-second round is far below the ±400 ms
+    scoring window, so a single anchor point is sufficient. <code>start()</code> returns the
+    full schedule as <code>{index, perfTime}[]</code>; visual beat callbacks fire via
+    per-beat <code>setTimeout</code> (fine for UI, never used for scoring), and the Play screen
+    ends the round with one timeout set to <em>last beat + window + margin</em>.
+  </p>
+
+  <h3>Count-in</h3>
+  <p>
+    Every round starts with 4 unscored count-in beats ("Get ready… 1 2 3 4") so the child
+    hears the tempo before scoring begins. The scored beats are
+    <code>schedule.slice(4)</code>, each assigned its expected movement by cycling the pattern.
+  </p>
+
+  <h3>Sounds</h3>
+  <ul>
+    <li><strong>Tick</strong> — a 90 ms sine blip with an exponential decay envelope; accented on pattern beat 1.</li>
+    <li><strong>Hit blip</strong> — a soft two-note triangle arpeggio (E6→A6) played when a movement
+        matches a beat, unless feedback mode is Quiet.</li>
+  </ul>
+</section>
+
+<!-- ============================================================ -->
+<section id="pose">
+  <h2><span class="num">6</span> Pose estimation pipeline</h2>
+  <p>
+    <code>src/pose.ts</code> wraps <strong>MediaPipe Tasks Vision</strong>
+    (<code>@mediapipe/tasks-vision</code>) with the <code>pose_landmarker_lite</code> model in
+    <code>runningMode: "VIDEO"</code>. The landmarker is a lazy singleton — the ~5 MB model and
+    WASM runtime load once, on first use, from Google's CDN. It tries the
+    <strong>GPU delegate first and falls back to CPU</strong> if WebGL isn't available.
+  </p>
+
+  <h3>The per-frame loop</h3>
+<pre><code><span class="k">const</span> <span class="f">loop</span> = () => {
+  raf = <span class="f">requestAnimationFrame</span>(loop);
+  <span class="k">if</span> (video.currentTime === lastTime) <span class="k">return</span>;   <span class="c">// skip duplicate frames</span>
+  lastTime = video.currentTime;
+
+  <span class="k">const</span> now = performance.now();
+  <span class="k">const</span> result = landmarker.<span class="f">detectForVideo</span>(video, now);
+  <span class="k">const</span> lm = result.landmarks?.[<span class="n">0</span>];             <span class="c">// 33 normalized landmarks</span>
+
+  <span class="f">drawSkeleton</span>(ctx, lm, w, h, color);            <span class="c">// canvas overlay</span>
+  <span class="k">for</span> (<span class="k">const</span> ev <span class="k">of</span> detector.<span class="f">update</span>(lm, now))   <span class="c">// movement events</span>
+    scorer.<span class="f">addEvent</span>(ev, now);
+};</code></pre>
+
+  <h3>Landmarks used</h3>
+  <p>
+    MediaPipe returns 33 body landmarks in normalized coordinates (x, y ∈ [0,1] relative to
+    frame size, plus a <code>visibility</code> confidence). Beat Buddy uses:
+    nose (0), shoulders (11/12), elbows (13/14), wrists (15/16), hips (23/24),
+    knees (25/26), ankles (27/28).
+  </p>
+
+  <h3>Full-body visibility check</h3>
+  <p>
+    <code>fullBodyVisible()</code> requires nose, shoulders, hips, knees, and ankles to all have
+    <code>visibility &gt; 0.5</code> and coordinates comfortably inside the frame. The Setup
+    screen turns green when it passes; the Play screen shows a friendly
+    "Step back so I can see you!" pill when it fails mid-round (scoring simply finds no
+    events while the child is out of frame — there is no penalty logic).
+  </p>
+
+  <div class="callout sun">
+    <span class="label">Why pose only, no hands model</span>
+    Pose landmarks alone are enough for cross-crawls, starfish, and knee events. Claps are
+    approximated as "wrists snap together in front of the torso" — less precise than the
+    MediaPipe Hands model but far cheaper, and well within the app's tolerance-first design.
+    Microphone-based clap detection was deliberately skipped to keep the privacy story simple.
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="detection">
+  <h2><span class="num">7</span> Movement event detection</h2>
+  <p>
+    <code>src/detect.ts</code> converts a stream of landmark frames into discrete, timestamped
+    events. Three mechanisms keep it robust:
+  </p>
+  <ul>
+    <li><strong>Torso normalization.</strong> Every distance threshold is expressed as a fraction
+      of torso length (average shoulder→hip distance), so detection works whether the child is
+      2 m or 4 m from the camera.</li>
+    <li><strong>Edge triggering with hysteresis.</strong> Each event fires once when its condition
+      <em>enters</em> (tight threshold) and re-arms only after it clearly <em>releases</em>
+      (wider threshold). Holding a pose can't spam events.</li>
+    <li><strong>Refractory period.</strong> A 300 ms minimum gap between firings of the same
+      event type absorbs landmark jitter.</li>
+  </ul>
+
+  <h3>Detection rules</h3>
+  <table>
+    <tr><th>Event</th><th>Fires when (relative to torso length T)</th><th>Re-arms when</th></tr>
+    <tr>
+      <td><code>LEFT_HAND_RIGHT_KNEE</code></td>
+      <td>dist(left wrist, right knee) &lt; 0.45 T</td>
+      <td>distance &gt; 0.7 T</td>
+    </tr>
+    <tr>
+      <td><code>RIGHT_HAND_LEFT_KNEE</code></td>
+      <td>dist(right wrist, left knee) &lt; 0.45 T</td>
+      <td>distance &gt; 0.7 T</td>
+    </tr>
+    <tr>
+      <td><code>CLAP</code></td>
+      <td>dist(wrists) &lt; 0.32 T <em>and</em> wrist midpoint is between shoulder and hip
+        height (±slack) — so hands-overhead doesn't count</td>
+      <td>wrist gap &gt; 0.55 T</td>
+    </tr>
+    <tr>
+      <td><code>STARFISH</code></td>
+      <td>both wrists &gt; 0.5 T horizontally out from their shoulders, wrists above hip height,
+        <em>and</em> ankle spread &gt; 1.35 × hip spread</td>
+      <td>either arm comes back in</td>
+    </tr>
+  </table>
+
+<pre><code><span class="c">// The shared edge-trigger helper — one boolean pair per event:</span>
+<span class="k">const</span> <span class="f">check</span> = (ev, entered, released) => {
+  <span class="k">if</span> (armed[ev] && entered && now - lastFired[ev] > <span class="n">300</span>) {
+    armed[ev] = <span class="k">false</span>; lastFired[ev] = now; fired.<span class="f">push</span>(ev);
+  } <span class="k">else if</span> (!armed[ev] && released) {
+    armed[ev] = <span class="k">true</span>;          <span class="c">// hysteresis: re-arm only on clear release</span>
+  }
+};</code></pre>
+
+  <p>
+    Frames with fewer than 33 landmarks, or an implausibly small torso (&lt; 0.05 in normalized
+    units — usually a spurious detection), are ignored entirely.
+  </p>
+</section>
+
+<!-- ============================================================ -->
+<section id="scoring">
+  <h2><span class="num">8</span> Scoring engine</h2>
+  <p>
+    <code>src/scorer.ts</code> receives the scored-beat schedule (index, perf-domain timestamp,
+    expected movement) at round start. Every incoming event is matched greedily:
+  </p>
+  <ol>
+    <li>Consider only beats whose <code>expected</code> equals the event type.</li>
+    <li>Skip beats that are already matched (each beat is satisfied at most once).</li>
+    <li>Among the rest, pick the beat with the smallest |event − beat| offset, if it is
+        within the timing window.</li>
+  </ol>
+
+  <figure>
+    <svg viewBox="0 0 720 150" width="720" font-family="Nunito, sans-serif" font-weight="700" font-size="13">
+      <!-- timeline -->
+      <line x1="40" y1="90" x2="690" y2="90" stroke="#33335c" stroke-width="3"/>
+      <!-- windows -->
+      <rect x="80" y="55" width="120" height="70" rx="10" fill="#d7f4ef" stroke="#1fbfae" stroke-width="2.5" stroke-dasharray="5 4"/>
+      <rect x="300" y="55" width="120" height="70" rx="10" fill="#d7f4ef" stroke="#1fbfae" stroke-width="2.5" stroke-dasharray="5 4"/>
+      <rect x="520" y="55" width="120" height="70" rx="10" fill="#d7f4ef" stroke="#1fbfae" stroke-width="2.5" stroke-dasharray="5 4"/>
+      <!-- beats -->
+      <g fill="#33335c">
+        <circle cx="140" cy="90" r="9"/>
+        <circle cx="360" cy="90" r="9"/>
+        <circle cx="580" cy="90" r="9"/>
+      </g>
+      <text x="140" y="40" text-anchor="middle" fill="#33335c">beat 1 · L→R knee</text>
+      <text x="360" y="40" text-anchor="middle" fill="#33335c">beat 2 · R→L knee</text>
+      <text x="580" y="40" text-anchor="middle" fill="#33335c">beat 3 · L→R knee</text>
+      <!-- events -->
+      <g>
+        <circle cx="168" cy="90" r="7" fill="#57cc75" stroke="#33335c" stroke-width="2.5"/>
+        <circle cx="470" cy="90" r="7" fill="#ff6b6b" stroke="#33335c" stroke-width="2.5"/>
+        <circle cx="562" cy="90" r="7" fill="#57cc75" stroke="#33335c" stroke-width="2.5"/>
+      </g>
+      <text x="168" y="142" text-anchor="middle" fill="#57cc75">hit (+112 ms)</text>
+      <text x="470" y="142" text-anchor="middle" fill="#ff6b6b">outside window → no match</text>
+      <text x="562" y="142" text-anchor="middle" fill="#57cc75">hit (−72 ms)</text>
+      <text x="86" y="70" fill="#1fbfae" font-size="11">±400 ms</text>
+    </svg>
+    <figcaption>Each beat has a ±400 ms window. Early events count just like late ones.</figcaption>
+  </figure>
+
+  <p>
+    The window is the spec's <strong>Easy mode: ±400 ms</strong> (a single constant,
+    <code>TIMING_WINDOW_MS</code> in <code>src/types.ts</code> — Normal ±300 and Hard ±200 are a
+    one-line change, planned as a parent setting). At 50 BPM a beat is 1200 ms apart, so windows
+    never overlap for the same movement type in practice.
+  </p>
+  <p>
+    <code>finalize()</code> — called by the Play screen once the last window has closed — returns
+    hits, total, the longest consecutive-hit streak, and per-beat results including the signed
+    timing offset of every hit (useful later for a parent-facing "tends to rush / tends to drag"
+    view).
+  </p>
+</section>
+
+<!-- ============================================================ -->
+<section id="feedback">
+  <h2><span class="num">9</span> Feedback philosophy</h2>
+  <p>Feedback is deliberately asymmetric: <strong>hits are celebrated, misses are silent.</strong></p>
+  <ul>
+    <li>During a round, a matched beat produces a star pop and a soft blip. A missed beat
+        produces… nothing. There is no "wrong", "missed", or red flash anywhere.</li>
+    <li>Gentle mode rotates neutral encouragements ("Nice, keep going!", "Follow the beat!")
+        on a timer — they are not tied to performance, so they can't become a judgment.</li>
+    <li>Result tiers are all positive: ≥90% "Superstar!", ≥70% "Awesome rhythm!",
+        ≥50% "Great practice!", below that "Good try!" with "Every round makes your body
+        smarter." The lowest tier still earns a star.</li>
+    <li>"Try it slower" is offered as an appealing next step, not a remediation.</li>
+    <li>Score numbers appear only when Score mode is explicitly chosen; parents can turn all
+        numbers off (Gentle shows kid-phrased counts, Quiet shows none).</li>
+  </ul>
+  <div class="callout teal">
+    <span class="label">Success criteria</span>
+    For this use case success should be achievable: roughly 70% of beats on Easy is a
+    "successful round". The forgiving window, torso-scaled thresholds, and
+    count-in all serve that goal.
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="privacy">
+  <h2><span class="num">10</span> Privacy model</h2>
+  <ul>
+    <li>All camera processing happens locally in the browser tab — MediaPipe runs as
+        WASM/WebGL on-device. <strong>No video frame ever leaves the machine.</strong></li>
+    <li>No video or audio is recorded or stored. The microphone is never requested
+        (<code>audio: false</code> in the <code>getUserMedia</code> constraints).</li>
+    <li>The camera stream is a module-level singleton, and it is fully stopped
+        (<code>track.stop()</code>) whenever the child returns to the game picker — the browser's
+        camera indicator light goes off.</li>
+    <li>The only persisted data is the settings object (speed / length / feedback) in
+        <code>localStorage</code>. No session history yet; when added it will also be local-only.</li>
+    <li>No analytics, no third-party requests at runtime except the one-time model/WASM
+        download from Google's CDN and Google Fonts.</li>
+    <li>Nothing identifies the child; there are no accounts and no names.</li>
+  </ul>
+  <p>The parent-facing copy on the main screen reflects exactly this:
+    <em>"Camera video stays on this device. The app uses the camera only to spot body landmarks
+    during the game. Nothing is saved or uploaded."</em></p>
+</section>
+
+<!-- ============================================================ -->
+<section id="files">
+  <h2><span class="num">11</span> File map</h2>
+  <table class="file-tree">
+    <tr><th>Path</th><th>Responsibility</th></tr>
+    <tr><td>index.ts</td><td>Bun server: serves index.html on port 4321 (HMR in dev)</td></tr>
+    <tr><td>index.html</td><td>HTML shell; loads fonts and src/frontend.tsx via Bun HTML imports</td></tr>
+    <tr><td>src/frontend.tsx</td><td>React root</td></tr>
+    <tr><td>src/App.tsx</td><td>Screen state machine, settings persistence, camera release</td></tr>
+    <tr><td>src/types.ts</td><td>Shared types + BPM map + TIMING_WINDOW_MS constant</td></tr>
+    <tr><td>src/games.ts</td><td>The three game patterns as data</td></tr>
+    <tr><td>src/metronome.ts</td><td>Web Audio lookahead scheduler, tick + hit sounds, beat schedule</td></tr>
+    <tr><td>src/camera.ts</td><td>Shared getUserMedia stream singleton (get / stop)</td></tr>
+    <tr><td>src/pose.ts</td><td>PoseLandmarker singleton (GPU→CPU), landmark indices, skeleton drawing, visibility check</td></tr>
+    <tr><td>src/detect.ts</td><td>EventDetector — landmarks in, timestamped movement events out</td></tr>
+    <tr><td>src/scorer.ts</td><td>Scorer — event↔beat matching, hits, streaks, offsets</td></tr>
+    <tr><td>src/Figure.tsx</td><td>SVG stick-figure with per-move poses; BeatDots component</td></tr>
+    <tr><td>src/screens/*.tsx</td><td>Pick · Setup · Demo · Play · Result</td></tr>
+    <tr><td>src/index.css</td><td>The whole design system (sticker-book aesthetic)</td></tr>
+    <tr><td>src/*.test.ts</td><td>Unit tests for scorer and detector (bun test)</td></tr>
+    <tr><td>docs/index.html</td><td>This document</td></tr>
+  </table>
+</section>
+
+<!-- ============================================================ -->
+<section id="testing">
+  <h2><span class="num">12</span> Testing</h2>
+  <p>The pure logic — the parts that decide whether a child "did it" — is unit tested with <code>bun test</code>:</p>
+  <ul>
+    <li><strong>Scorer</strong> (<code>src/scorer.test.ts</code>): in-window matches, out-of-window
+      rejections, wrong-type rejections, one-event-per-beat, nearest-beat selection, early events,
+      streak computation, signed offsets.</li>
+    <li><strong>EventDetector</strong> (<code>src/detect.test.ts</code>): synthetic 33-landmark
+      frames verify each rule fires, doesn't re-fire while held, re-arms after release, and that
+      hands-overhead is not a clap.</li>
+  </ul>
+  <p>
+    The full loop (camera → round → result) was verified end-to-end in a headless Chromium with
+    <code>--use-fake-device-for-media-stream</code>: the metronome schedule, count-in, round
+    completion, and result screen all work with zero console errors. The fake feed contains no
+    person, which also exercises the "no landmarks" path safely.
+  </p>
+</section>
+
+<!-- ============================================================ -->
+<section id="tuning">
+  <h2><span class="num">13</span> Tuning &amp; extending</h2>
+
+  <h3>If detection feels wrong in real use</h3>
+  <table>
+    <tr><th>Symptom</th><th>Knob (all in src/detect.ts unless noted)</th></tr>
+    <tr><td>Knee touches not registering</td><td>Raise the enter threshold <code>0.45</code> toward <code>0.55</code></td></tr>
+    <tr><td>Touches double-counting</td><td>Widen the release threshold <code>0.7</code>, or raise <code>REFRACTORY_MS</code></td></tr>
+    <tr><td>Claps missed</td><td>Raise <code>0.32</code>, or loosen the chest-height band</td></tr>
+    <tr><td>Starfish too hard to hit</td><td>Lower arm-out <code>0.5</code> or feet-wide ratio <code>1.35</code></td></tr>
+    <tr><td>Everything feels too strict/loose overall</td><td><code>TIMING_WINDOW_MS</code> in <code>src/types.ts</code> (400 → 300/200 for Normal/Hard)</td></tr>
+  </table>
+
+  <h3>Adding a game</h3>
+  <ol>
+    <li>Add a <code>GamePattern</code> entry in <code>src/games.ts</code> (id, color, steps).</li>
+    <li>If it needs a new movement: add the variant to <code>MovementEvent</code> in
+        <code>src/types.ts</code>, a detection rule in <code>EventDetector.update()</code>, a
+        figure pose in <code>src/Figure.tsx</code>'s <code>POSES</code>, and a preview mapping in
+        <code>Pick.tsx</code>.</li>
+    <li>That's it — demo, play, and scoring are entirely pattern-driven.</li>
+  </ol>
+
+  <h3>Planned next phases (from the spec)</h3>
+  <ul>
+    <li><strong>Copy Me</strong> — the app plays a 4-beat pattern, the child repeats it; needs a
+      listen-then-perform round structure but reuses the detector and scorer as-is.</li>
+    <li><strong>Stomp-Clap</strong> — stomps are weak with pose alone; the plan is a "march" variant
+      (knee-lift detection) first, optionally microphone impact detection later.</li>
+    <li><strong>Parent customization</strong> — timing tolerance picker, per-game BPM, hidden score,
+      local session history with manual export. The scorer already records per-beat offsets to
+      support this.</li>
+  </ul>
+</section>
+
+<footer>
+  Beat Buddy · movement practice, not behavior management · everything stays on this device
+</footer>
+
+</div>
+</body>
+</html>
