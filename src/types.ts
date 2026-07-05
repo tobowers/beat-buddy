@@ -39,8 +39,16 @@ export const BPM: Record<Speed, number> = {
   fast: 75,
 };
 
-/** Easy-mode timing window (ms either side of the beat). Forgiving on purpose. */
-export const TIMING_WINDOW_MS = 400;
+/**
+ * Timing window (ms either side of the beat). Forgiving on purpose: kids
+ * follow the move card reactively, and see-then-do takes 600–900ms, so the
+ * window is 90% of a beat period (±1080ms at 50 BPM, ±720ms at 75 BPM).
+ * In an alternating pattern same-type beats sit two periods apart, so
+ * anything under one period keeps event→beat matching unambiguous.
+ */
+export function timingWindowMs(bpm: number): number {
+  return Math.round(0.9 * (60000 / bpm));
+}
 
 export type BeatResult = {
   index: number;

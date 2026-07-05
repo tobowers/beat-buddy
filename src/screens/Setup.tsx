@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { getCameraStream } from "../camera";
-import { getPoseLandmarker, drawSkeleton, fullBodyVisible, toAnatomical } from "../pose";
+import { getPoseLandmarker, drawSkeleton, fullBodyVisible } from "../pose";
 import type { GamePattern, Settings, Speed, FeedbackMode } from "../types";
 import { BPM } from "../types";
 
@@ -53,7 +53,7 @@ export function Setup({
         if (video.readyState < 2 || video.currentTime === lastTime) return;
         lastTime = video.currentTime;
         const result = landmarker.detectForVideo(video, performance.now());
-        const lm = toAnatomical(result.landmarks?.[0]);
+        const lm = result.landmarks?.[0];
         setBodyOk(fullBodyVisible(lm));
         const canvas = canvasRef.current;
         if (!canvas) return;

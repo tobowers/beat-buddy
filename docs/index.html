@@ -455,11 +455,11 @@
     <span class="label">Mirror convention</span>
     The demo figure and camera view are both mirrored like a bathroom mirror: the child's
     <em>left</em> hand corresponds to the limb on the <em>viewer's left</em>. The video and canvas
-    get <code>transform: scaleX(-1)</code>. One gotcha: MediaPipe's pose model labels sides
-    selfie-style, so with the unmirrored frames we feed it, its "left wrist" actually tracks the
-    player's <em>right</em> hand. <code>toAnatomical()</code> in <code>pose.ts</code> swaps every
-    left/right landmark pair once at ingestion, so all downstream code (detection, balance
-    predicates, per-side records) reads the child's true anatomical sides.
+    get <code>transform: scaleX(-1)</code>; detection logic uses the person's own left/right
+    landmarks, so mirroring never affects scoring. Verified physically (2026-07-05): with the
+    unmirrored frames we feed it, MediaPipe's pose model labels sides anatomically — its
+    "left wrist" IS the player's left wrist. Do not swap landmark sides at ingestion; an
+    earlier <code>toAnatomical()</code> swap inverted every per-side feature and was removed.
   </div>
 </section>
 
@@ -636,13 +636,13 @@
     <tr><th>Event</th><th>Fires when (relative to torso length T)</th><th>Re-arms when</th></tr>
     <tr>
       <td><code>LEFT_HAND_RIGHT_KNEE</code></td>
-      <td>dist(left wrist, right knee) &lt; 0.45 T</td>
-      <td>distance &gt; 0.7 T</td>
+      <td>dist(left wrist, right knee) &lt; 0.55 T</td>
+      <td>distance &gt; 0.8 T</td>
     </tr>
     <tr>
       <td><code>RIGHT_HAND_LEFT_KNEE</code></td>
-      <td>dist(right wrist, left knee) &lt; 0.45 T</td>
-      <td>distance &gt; 0.7 T</td>
+      <td>dist(right wrist, left knee) &lt; 0.55 T</td>
+      <td>distance &gt; 0.8 T</td>
     </tr>
     <tr>
       <td><code>CLAP</code></td>
@@ -713,16 +713,19 @@
       <text x="168" y="142" text-anchor="middle" fill="#57cc75">hit (+112 ms)</text>
       <text x="470" y="142" text-anchor="middle" fill="#ff6b6b">outside window → no match</text>
       <text x="562" y="142" text-anchor="middle" fill="#57cc75">hit (−72 ms)</text>
-      <text x="86" y="70" fill="#1fbfae" font-size="11">±400 ms</text>
+      <text x="86" y="70" fill="#1fbfae" font-size="11">±0.9 beat</text>
     </svg>
-    <figcaption>Each beat has a ±400 ms window. Early events count just like late ones.</figcaption>
+    <figcaption>Each beat has a window of ±90% of a beat period. Early events count just like late ones.</figcaption>
   </figure>
 
   <p>
-    The window is the spec's <strong>Easy mode: ±400 ms</strong> (a single constant,
-    <code>TIMING_WINDOW_MS</code> in <code>src/types.ts</code> — Normal ±300 and Hard ±200 are a
-    one-line change, planned as a parent setting). At 50 BPM a beat is 1200 ms apart, so windows
-    never overlap for the same movement type in practice.
+    The window scales with tempo: <strong>±90% of a beat period</strong>
+    (<code>timingWindowMs()</code> in <code>src/types.ts</code> — ±1080 ms at 50 BPM, ±720 ms at
+    75 BPM). It is this forgiving on purpose: kids follow the move card reactively, and
+    see-then-do takes 600–900 ms — a fixed ±400 ms window silently rejected correct moves,
+    which players read as "the sides are reversed". In an alternating pattern, same-type beats
+    sit two periods apart, so anything under one period still matches unambiguously. Stricter
+    Normal/Hard factors are a one-line change, planned as a parent setting.
   </p>
   <p>
     <code>finalize()</code> — called by the Play screen once the last window has closed — returns
@@ -857,7 +860,10 @@
     inline is factored into a shared <code>&lt;CameraStage onFrame={...}&gt;</code> component
     (<code>src/CameraStage.tsx</code>); each balance game just supplies its per-frame logic and
     HUD children. Small sound cues live in <code>src/sfx.ts</code> (blip / beep / chime) —
-    no metronome required.
+    no metronome required. Passing <code>hugStart</code> makes the stage wait behind the same
+    self-hug overlay as the beat rounds before it starts calling <code>onFrame</code>; Tree
+    Timer, Standing Starfish, Growing Tree, and Sock Mission use it (Sock Mission starts its
+    mission clock at the hug). Night Tree keeps its grown-up-pressed start on purpose.
   </p>
 
   <h3>Night Tree safety design</h3>
@@ -898,7 +904,7 @@
     <tr><td>index.html</td><td>HTML shell; loads fonts and src/frontend.tsx via Bun HTML imports</td></tr>
     <tr><td>src/frontend.tsx</td><td>React root</td></tr>
     <tr><td>src/App.tsx</td><td>Screen state machine, settings persistence, camera release</td></tr>
-    <tr><td>src/types.ts</td><td>Shared types + BPM map + TIMING_WINDOW_MS constant</td></tr>
+    <tr><td>src/types.ts</td><td>Shared types + BPM map + timingWindowMs()</td></tr>
     <tr><td>src/games.ts</td><td>The three game patterns as data</td></tr>
     <tr><td>src/metronome.ts</td><td>Web Audio lookahead scheduler, tick + hit sounds, beat schedule</td></tr>
     <tr><td>src/camera.ts</td><td>Shared getUserMedia stream singleton (get / stop)</td></tr>
@@ -951,7 +957,7 @@
     <tr><td>Touches double-counting</td><td>Widen the release threshold <code>0.7</code>, or raise <code>REFRACTORY_MS</code></td></tr>
     <tr><td>Claps missed</td><td>Raise <code>0.32</code>, or loosen the chest-height band</td></tr>
     <tr><td>Starfish too hard to hit</td><td>Lower arm-out <code>0.5</code> or feet-wide ratio <code>1.35</code></td></tr>
-    <tr><td>Everything feels too strict/loose overall</td><td><code>TIMING_WINDOW_MS</code> in <code>src/types.ts</code> (400 → 300/200 for Normal/Hard)</td></tr>
+    <tr><td>Everything feels too strict/loose overall</td><td><code>timingWindowMs()</code> in <code>src/types.ts</code> (factor 0.9 → lower for stricter play)</td></tr>
   </table>
 
   <h3>Adding a game</h3>

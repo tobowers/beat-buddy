@@ -1,13 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { getCameraStream } from "../camera";
-import { getPoseLandmarker, drawSkeleton, fullBodyVisible, toAnatomical } from "../pose";
-import { EventDetector, isHug } from "../detect";
+import { getPoseLandmarker, drawSkeleton, fullBodyVisible } from "../pose";
+import { EventDetector, isHug, crossRatios } from "../detect";
 import { Metronome } from "../metronome";
 import { chime } from "../sfx";
 import { Scorer, type BeatSpec } from "../scorer";
 import { Figure, BeatDots } from "../Figure";
 import type { GamePattern, RoundResult, Settings } from "../types";
-import { BPM, TIMING_WINDOW_MS } from "../types";
+import { BPM, timingWindowMs } from "../types";
 
 const COUNT_IN = 4;
 
@@ -40,9 +40,15 @@ export function Play({
   const [bodyOk, setBodyOk] = useState(true);
   const [cheer, setCheer] = useState(0);
   const startRoundRef = useRef<() => void>(() => {});
+  // ?debug shows pose fps, how close each wrist gets to the opposite knee
+  // (2s rolling minimum, torso-scaled), and every fired event + credit status
+  const debug = useMemo(() => new URLSearchParams(location.search).has("debug"), []);
+  const [lastEvent, setLastEvent] = useState("");
+  const [debugStats, setDebugStats] = useState("");
 
   const len = game.steps.length;
   const bpm = BPM[settings.speed];
+  const windowMs = timingWindowMs(bpm);
   const scoredCount = useMemo(() => {
     const raw = Math.floor((settings.roundSeconds * bpm) / 60 / len) * len;
     return Math.max(len * 2, raw);
@@ -84,10 +90,10 @@ export function Play({
           perfTime: b.perfTime,
           expected: game.steps[j % len]!.expected,
         }));
-        scorer = new Scorer(specs, TIMING_WINDOW_MS);
+        scorer = new Scorer(specs, windowMs);
 
         const last = beats[beats.length - 1]!;
-        const endDelay = last.perfTime - performance.now() + TIMING_WINDOW_MS + 350;
+        const endDelay = last.perfTime - performance.now() + windowMs + 350;
         endTimeout = setTimeout(() => {
           if (cancelled) return;
           const final = scorer!.finalize();
@@ -99,6 +105,12 @@ export function Play({
       // --- pose loop: wait for the hug, then fire movement events into the scorer ---
       let lastTime = -1;
       let hugSince: number | null = null;
+      let dbgFrames = 0;
+      let dbgFps = 0;
+      let dbgFpsT = 0;
+      let dbgMinL = Infinity;
+      let dbgMinR = Infinity;
+      let dbgStatsT = 0;
       const loop = () => {
         if (cancelled) return;
         raf = requestAnimationFrame(loop);
@@ -106,7 +118,7 @@ export function Play({
         lastTime = video.currentTime;
         const now = performance.now();
         const result = landmarker.detectForVideo(video, now);
-        const lm = toAnatomical(result.landmarks?.[0]);
+        const lm = result.landmarks?.[0];
         setBodyOk(fullBodyVisible(lm));
 
         const canvas = canvasRef.current;
@@ -118,6 +130,28 @@ export function Play({
           const ctx = canvas.getContext("2d")!;
           if (lm) drawSkeleton(ctx, lm, canvas.width, canvas.height, "rgba(255,253,248,0.9)");
           else ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        if (debug) {
+          dbgFrames++;
+          if (dbgFpsT === 0) dbgFpsT = now;
+          if (now - dbgFpsT >= 1000) {
+            dbgFps = dbgFrames;
+            dbgFrames = 0;
+            dbgFpsT = now;
+          }
+          const r = crossRatios(lm);
+          if (r) {
+            dbgMinL = Math.min(dbgMinL, r.lwrk);
+            dbgMinR = Math.min(dbgMinR, r.rwlk);
+          }
+          if (now - dbgStatsT >= 2000) {
+            const f = (v: number) => (v === Infinity ? "–" : v.toFixed(2));
+            setDebugStats(`${dbgFps}fps · L→Rk ${f(dbgMinL)} · R→Lk ${f(dbgMinR)}`);
+            dbgMinL = Infinity;
+            dbgMinR = Infinity;
+            dbgStatsT = now;
+          }
         }
 
         if (!started) {
@@ -134,6 +168,7 @@ export function Play({
         if (lm && scorer) {
           for (const ev of detector.update(lm, now)) {
             const matched = scorer.addEvent(ev, now);
+            if (debug) setLastEvent(`${ev} ${matched !== null ? "✓ hit" : "✗ no beat"}`);
             if (matched !== null) {
               if (settings.feedback !== "none") met.playHit();
               setHits(scorer.hits);
@@ -210,6 +245,19 @@ export function Play({
 
         {!bodyOk && status === "playing" && !inCountIn && (
           <div className="body-warn">Step back so I can see you!</div>
+        )}
+
+        {debug && (debugStats || lastEvent) && (
+          <div
+            style={{
+              position: "absolute", top: 64, left: "50%", transform: "translateX(-50%)",
+              background: "rgba(0,0,0,0.65)", color: "#fff", padding: "4px 14px",
+              borderRadius: 10, fontFamily: "monospace", fontSize: 14, zIndex: 9,
+            }}
+          >
+            {debugStats}
+            {lastEvent && ` · ${lastEvent}`}
+          </div>
         )}
 
         <div className="play-hud-top">

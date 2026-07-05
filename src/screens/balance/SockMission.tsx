@@ -22,6 +22,7 @@ const LEVELS: { key: Level; name: string; hint: string }[] = [
  */
 export function SockMission({ onBack }: { onBack: () => void }) {
   const [phase, setPhase] = useState<"intro" | "play" | "between" | "done">("intro");
+  const [started, setStarted] = useState(false); // hug done, mission clock running
   const [level, setLevel] = useState<Level>("B");
   const [step, setStep] = useState<Step>("lift");
   const [dips, setDips] = useState(0);
@@ -47,8 +48,16 @@ export function SockMission({ onBack }: { onBack: () => void }) {
     st.current = { start: performance.now(), lifted: false, lastLifted: 0, liftedSince: 0 };
     setDips(0);
     setElapsed(0);
+    setStarted(false);
     setStep(level === "A" ? "off" : "lift");
     setPhase("play");
+  };
+
+  // the mission clock starts at the hug, not at the intro button
+  const onHugStart = () => {
+    st.current.start = performance.now();
+    setElapsed(0);
+    setStarted(true);
   };
 
   const onFrame = (lm: any, now: number) => {
@@ -179,10 +188,10 @@ export function SockMission({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="screen play-screen">
-      <CameraStage onFrame={onFrame}>
+      <CameraStage onFrame={onFrame} hugStart={{ accent: "var(--coral)", onStart: onHugStart }}>
         <div className="play-hud-top">
           <button className="btn btn-ghost btn-quit" onClick={onBack}>✕</button>
-          <div className="play-timer">{fmt(elapsed)}</div>
+          <div className="play-timer">{started ? fmt(elapsed) : ""}</div>
           {level !== "A" ? <div className="play-hits">🌋 {dips}</div> : <div className="play-hits" />}
         </div>
         <div className="play-hud-bottom">

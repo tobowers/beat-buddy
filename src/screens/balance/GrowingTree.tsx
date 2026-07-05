@@ -159,7 +159,7 @@ export function GrowingTree({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="screen play-screen">
-      <CameraStage onFrame={onFrame}>
+      <CameraStage onFrame={onFrame} hugStart={{ accent: "var(--grass)" }}>
         <div className="play-hud-top">
           <button className="btn btn-ghost btn-quit" onClick={onBack}>✕</button>
           <div className="play-timer" />

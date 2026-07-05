@@ -25,6 +25,25 @@ export function isHug(lm: NormalizedLandmark[] | undefined): boolean {
 }
 
 /**
+ * Torso-scaled wrist→opposite-knee distances — the cross-crawl signal.
+ * Exposed for the play screen's ?debug readout so thresholds can be tuned
+ * against real bodies.
+ */
+export function crossRatios(
+  lm: NormalizedLandmark[] | undefined,
+): { lwrk: number; rwlk: number } | null {
+  if (!lm || lm.length < 33) return null;
+  const torso =
+    (dist(lm[LM.leftShoulder]!, lm[LM.leftHip]!) + dist(lm[LM.rightShoulder]!, lm[LM.rightHip]!)) /
+    2;
+  if (torso < 0.05) return null;
+  return {
+    lwrk: dist(lm[LM.leftWrist]!, lm[LM.rightKnee]!) / torso,
+    rwlk: dist(lm[LM.rightWrist]!, lm[LM.leftKnee]!) / torso,
+  };
+}
+
+/**
  * Edge-triggered movement event detector with hysteresis.
  *
  * Each event fires once when its condition becomes true, then re-arms only
@@ -57,8 +76,6 @@ export class EventDetector {
     const rh = lm[LM.rightHip]!;
     const lw = lm[LM.leftWrist]!;
     const rw = lm[LM.rightWrist]!;
-    const lk = lm[LM.leftKnee]!;
-    const rk = lm[LM.rightKnee]!;
     const la = lm[LM.leftAnkle]!;
     const ra = lm[LM.rightAnkle]!;
 
@@ -77,11 +94,11 @@ export class EventDetector {
     };
 
     // --- opposite hand to knee ---
-    const lwrk = dist(lw, rk) / torso;
-    check("LEFT_HAND_RIGHT_KNEE", lwrk < 0.45, lwrk > 0.7);
-
-    const rwlk = dist(rw, lk) / torso;
-    check("RIGHT_HAND_LEFT_KNEE", rwlk < 0.45, rwlk > 0.7);
+    // Loose on purpose: the wrist landmark sits a hand-length from where the
+    // palm taps, and marching taps often land on the thigh, not the kneecap.
+    const { lwrk, rwlk } = crossRatios(lm)!;
+    check("LEFT_HAND_RIGHT_KNEE", lwrk < 0.55, lwrk > 0.8);
+    check("RIGHT_HAND_LEFT_KNEE", rwlk < 0.55, rwlk > 0.8);
 
     // --- clap: wrists snap together in front of the torso ---
     const wristGap = dist(lw, rw) / torso;

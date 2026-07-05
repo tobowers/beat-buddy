@@ -66,6 +66,14 @@ test("left hand to right knee fires once, then re-arms after release", () => {
   expect(d.update(touching, 1800)).toEqual(["LEFT_HAND_RIGHT_KNEE"]);
 });
 
+test("a thigh-height tap (wrist a hand-length from the knee) still fires", () => {
+  const d = new EventDetector();
+  d.update(frame(), 0);
+  // left wrist near, but not on, the right knee (≈0.49 torso-lengths away)
+  const tap = frame({ 15: { x: 0.47, y: 0.67 } });
+  expect(d.update(tap, 500)).toEqual(["LEFT_HAND_RIGHT_KNEE"]);
+});
+
 test("clap fires when wrists snap together at chest height", () => {
   const d = new EventDetector();
   d.update(frame(), 0);

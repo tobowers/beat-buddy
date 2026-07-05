@@ -27,6 +27,9 @@ A second game category (no metronome — timers, holds, and reps):
 - **Night Tree** — eyes closed for a fixed 3 seconds; grown-up-gated, audio-beep countdown,
   no records and no pushing by design
 
+Like the beat rounds, these start hands-free with a self-hug (except Night Tree,
+which keeps its grown-up-pressed start button on purpose).
+
 ## Run it
 
 ```sh

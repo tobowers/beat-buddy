@@ -1,5 +1,6 @@
 import { test, expect } from "bun:test";
 import { Scorer, type BeatSpec } from "./scorer";
+import { timingWindowMs } from "./types";
 
 const beats: BeatSpec[] = [
   { index: 0, perfTime: 1000, expected: "LEFT_HAND_RIGHT_KNEE" },
@@ -40,6 +41,19 @@ test("event matches the nearest eligible beat", () => {
 test("early events (before the beat) still count", () => {
   const s = new Scorer(beats, 400);
   expect(s.addEvent("RIGHT_HAND_LEFT_KNEE", 1700)).toBe(1);
+});
+
+test("timing window scales with tempo and stays under one beat period", () => {
+  expect(timingWindowMs(50)).toBe(1080);
+  expect(timingWindowMs(75)).toBe(720);
+  for (const bpm of [50, 60, 75]) {
+    expect(timingWindowMs(bpm)).toBeLessThan(60000 / bpm);
+  }
+});
+
+test("a reactive (late-by-most-of-a-beat) correct move still credits its beat", () => {
+  const s = new Scorer(beats, timingWindowMs(60)); // beats are 1000ms apart
+  expect(s.addEvent("LEFT_HAND_RIGHT_KNEE", 1850)).toBe(0);
 });
 
 test("finalize reports hits, total, and best streak", () => {

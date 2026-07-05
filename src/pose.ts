@@ -3,7 +3,13 @@ import type { NormalizedLandmark } from "@mediapipe/tasks-vision";
 
 export type { NormalizedLandmark };
 
-// MediaPipe Pose landmark indices
+// MediaPipe Pose landmark indices.
+//
+// Side labels are ANATOMICAL for the unmirrored frames we feed the model:
+// index 15 ("left wrist") tracks the player's real left wrist. Verified
+// physically on 2026-07-05 (lifting the right leg moves raw index 28).
+// Do NOT swap left/right pairs at ingestion — an earlier toAnatomical()
+// swap did exactly that and inverted every per-side feature.
 export const LM = {
   nose: 0,
   leftShoulder: 11,
@@ -19,28 +25,6 @@ export const LM = {
   leftAnkle: 27,
   rightAnkle: 28,
 } as const;
-
-// MediaPipe's pose model labels sides selfie-style: with our unmirrored
-// camera frames, the model's "left wrist" tracks the player's RIGHT hand.
-// Swap every left/right landmark pair once at ingestion so downstream code
-// (detection, balance predicates, per-side records) reads true anatomy.
-const SIDE_PAIRS: [number, number][] = [
-  [1, 4], [2, 5], [3, 6], [7, 8], [9, 10],
-  [11, 12], [13, 14], [15, 16], [17, 18], [19, 20], [21, 22],
-  [23, 24], [25, 26], [27, 28], [29, 30], [31, 32],
-];
-
-export function toAnatomical(
-  lm: NormalizedLandmark[] | undefined,
-): NormalizedLandmark[] | undefined {
-  if (!lm || lm.length < 33) return lm;
-  const out = lm.slice();
-  for (const [a, b] of SIDE_PAIRS) {
-    out[a] = lm[b]!;
-    out[b] = lm[a]!;
-  }
-  return out;
-}
 
 const WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm";
 const MODEL_URL =
@@ -94,30 +78,42 @@ export function fullBodyVisible(lm: NormalizedLandmark[] | undefined): boolean {
   });
 }
 
-const CONNECTIONS: [number, number][] = [
-  [LM.leftShoulder, LM.rightShoulder],
-  [LM.leftShoulder, LM.leftElbow],
-  [LM.leftElbow, LM.leftWrist],
-  [LM.rightShoulder, LM.rightElbow],
-  [LM.rightElbow, LM.rightWrist],
-  [LM.leftShoulder, LM.leftHip],
-  [LM.rightShoulder, LM.rightHip],
-  [LM.leftHip, LM.rightHip],
-  [LM.leftHip, LM.leftKnee],
-  [LM.leftKnee, LM.leftAnkle],
-  [LM.rightHip, LM.rightKnee],
-  [LM.rightKnee, LM.rightAnkle],
+type Side = "L" | "R" | "mid";
+
+const CONNECTIONS: [number, number, Side][] = [
+  [LM.leftShoulder, LM.rightShoulder, "mid"],
+  [LM.leftShoulder, LM.leftElbow, "L"],
+  [LM.leftElbow, LM.leftWrist, "L"],
+  [LM.rightShoulder, LM.rightElbow, "R"],
+  [LM.rightElbow, LM.rightWrist, "R"],
+  [LM.leftShoulder, LM.leftHip, "L"],
+  [LM.rightShoulder, LM.rightHip, "R"],
+  [LM.leftHip, LM.rightHip, "mid"],
+  [LM.leftHip, LM.leftKnee, "L"],
+  [LM.leftKnee, LM.leftAnkle, "L"],
+  [LM.rightHip, LM.rightKnee, "R"],
+  [LM.rightKnee, LM.rightAnkle, "R"],
 ];
 
-const JOINTS = [
-  LM.leftShoulder, LM.rightShoulder, LM.leftElbow, LM.rightElbow,
-  LM.leftWrist, LM.rightWrist, LM.leftHip, LM.rightHip,
-  LM.leftKnee, LM.rightKnee, LM.leftAnkle, LM.rightAnkle,
+const JOINTS: [number, Side][] = [
+  [LM.leftShoulder, "L"], [LM.rightShoulder, "R"],
+  [LM.leftElbow, "L"], [LM.rightElbow, "R"],
+  [LM.leftWrist, "L"], [LM.rightWrist, "R"],
+  [LM.leftHip, "L"], [LM.rightHip, "R"],
+  [LM.leftKnee, "L"], [LM.rightKnee, "R"],
+  [LM.leftAnkle, "L"], [LM.rightAnkle, "R"],
 ];
+
+// The child's left side is always teal and right side always coral, both here
+// and on the demo figure's mirror convention — it doubles as a live check
+// that the model's side labels track the real limbs.
+const LEFT_COLOR = "#1fbfae"; // teal
+const RIGHT_COLOR = "#ff6b6b"; // coral
 
 /**
  * Draw a chunky, friendly skeleton. The canvas is expected to be mirrored via
  * CSS along with the video, so we draw in raw (unmirrored) coordinates.
+ * `color` paints the midline (shoulders, hips, head); limbs are side-colored.
  */
 export function drawSkeleton(
   ctx: CanvasRenderingContext2D,
@@ -129,21 +125,23 @@ export function drawSkeleton(
   ctx.clearRect(0, 0, w, h);
   ctx.lineWidth = Math.max(5, w / 110);
   ctx.lineCap = "round";
-  ctx.strokeStyle = color;
-  ctx.fillStyle = color;
 
-  for (const [a, b] of CONNECTIONS) {
+  const sideColor = (s: Side) => (s === "L" ? LEFT_COLOR : s === "R" ? RIGHT_COLOR : color);
+
+  for (const [a, b, side] of CONNECTIONS) {
     const p = lm[a]!;
     const q = lm[b]!;
     if ((p.visibility ?? 1) < 0.4 || (q.visibility ?? 1) < 0.4) continue;
+    ctx.strokeStyle = sideColor(side);
     ctx.beginPath();
     ctx.moveTo(p.x * w, p.y * h);
     ctx.lineTo(q.x * w, q.y * h);
     ctx.stroke();
   }
-  for (const i of JOINTS) {
+  for (const [i, side] of JOINTS) {
     const p = lm[i]!;
     if ((p.visibility ?? 1) < 0.4) continue;
+    ctx.fillStyle = sideColor(side);
     ctx.beginPath();
     ctx.arc(p.x * w, p.y * h, Math.max(4, w / 140), 0, Math.PI * 2);
     ctx.fill();
@@ -151,6 +149,7 @@ export function drawSkeleton(
   // head bubble
   const nose = lm[LM.nose]!;
   if ((nose.visibility ?? 1) >= 0.4) {
+    ctx.strokeStyle = color;
     ctx.beginPath();
     ctx.arc(nose.x * w, nose.y * h, Math.max(10, w / 40), 0, Math.PI * 2);
     ctx.lineWidth = Math.max(4, w / 160);
