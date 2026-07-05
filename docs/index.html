@@ -262,6 +262,7 @@
     <li><a href="#scoring">Scoring engine</a></li>
     <li><a href="#feedback">Feedback philosophy</a></li>
     <li><a href="#privacy">Privacy model</a></li>
+    <li><a href="#balance">Balance challenges</a></li>
     <li><a href="#files">File map</a></li>
     <li><a href="#testing">Testing</a></li>
     <li><a href="#tuning">Tuning &amp; extending</a></li>
@@ -773,8 +774,119 @@
 </section>
 
 <!-- ============================================================ -->
+<section id="balance">
+  <h2><span class="num">11</span> Balance challenges</h2>
+  <p>
+    Balance Challenges is a second game category with its own page, reached from a banner on
+    the main picker. These games share the camera, pose model, skeleton overlay, and design
+    system with the rhythm games — but there is <strong>no metronome and no beat scoring</strong>.
+    Instead of "did the movement land on the beat?", the question becomes
+    "can you hold / control this position?" — timers, holds, and reps.
+  </p>
+
+  <h3>The five games</h3>
+  <table>
+    <tr><th>Game</th><th>Challenge</th><th>What the app measures</th></tr>
+    <tr>
+      <td><strong>Tree Timer</strong><br><small>one-foot balance, eyes open</small></td>
+      <td>"One-root tree" — lift one foot and hold as long as you can, then switch sides.</td>
+      <td>Hold time per side (auto-detected), best left vs best right, local personal bests
+        with a "new best" star.</td>
+    </tr>
+    <tr>
+      <td><strong>Standing Starfish</strong></td>
+      <td>Hold the big starfish shape completely still until the bar fills (5s or 10s), three times.</td>
+      <td>Continuous hold time (short detection flickers are forgiven); 3 completed holds
+        finish the challenge.</td>
+    </tr>
+    <tr>
+      <td><strong>Growing Tree</strong></td>
+      <td>Crouch like a seed → rise as <em>slowly</em> as possible → hold a tall tree
+        (arms up) for 3 s. Five trees.</td>
+      <td>A seed→rise→tall state machine per rep; rise duration is measured and
+        <em>slow</em> rises (≥2.5 s) get an extra cheer. Fast rises still count.</td>
+    </tr>
+    <tr>
+      <td><strong>Sock Mission</strong></td>
+      <td>"Sock ninja": take a sock off and put it back on while balancing. Three levels —
+        Sitting, Wall helper, Full ninja.</td>
+      <td>Mission time per foot, plus "lava dips" (foot-down events) on the standing levels.
+        Pose can't see the sock itself, so the sock-off / sock-on milestones are big
+        kid-pressable buttons; the camera handles the balance half.</td>
+    </tr>
+    <tr>
+      <td><strong>Night Tree</strong><br><small>eyes closed — advanced</small></td>
+      <td>One-foot balance with eyes closed for a fixed 3 seconds.</td>
+      <td>Only whether the foot stayed up during the countdown. No times, no records,
+        no progression — deliberately.</td>
+    </tr>
+  </table>
+
+  <h3>Balance pose primitives</h3>
+  <p>
+    <code>src/balance.ts</code> adds four pure predicates alongside the rhythm games'
+    event detector, all torso-normalized like everything else:
+  </p>
+  <table>
+    <tr><th>Predicate</th><th>True when</th></tr>
+    <tr><td><code>footLifted(lm)</code></td>
+      <td>One ankle is clearly higher than the other (&gt; 0.12 T difference) — returns which
+        side ("left"/"right") or null. Used by Tree Timer, Night Tree, and Sock Mission.</td></tr>
+    <tr><td><code>isStarfishShape(lm)</code></td>
+      <td>Both wrists flung wide of the shoulders + feet wider than 1.35× hip width
+        (same shape as the rhythm games' STARFISH event, but held rather than edge-triggered).</td></tr>
+    <tr><td><code>isCrouch(lm)</code></td>
+      <td>Hips have dropped to within 0.3 T of knee height — the "seed".</td></tr>
+    <tr><td><code>isTallTree(lm)</code></td>
+      <td>Standing straight (hips well above knees) with both wrists above the nose.</td></tr>
+  </table>
+  <p>
+    Where the rhythm games needed <em>instants</em> (edge-triggered events matched to beats),
+    balance games need <em>states over time</em>. Each game keeps a small per-frame state
+    machine in a ref with debouncing in both directions: a lift/shape must be stable for
+    ~300 ms to start counting, and must be lost for ~450–500 ms to end — so one blurry frame
+    never ends a hold, and a bounce never starts one.
+  </p>
+  <p>
+    The camera plumbing (stream + pose loop + skeleton canvas) that the Play screen does
+    inline is factored into a shared <code>&lt;CameraStage onFrame={...}&gt;</code> component
+    (<code>src/CameraStage.tsx</code>); each balance game just supplies its per-frame logic and
+    HUD children. Small sound cues live in <code>src/sfx.ts</code> (blip / beep / chime) —
+    no metronome required.
+  </p>
+
+  <h3>Night Tree safety design</h3>
+  <div class="callout coral">
+    <span class="label">No hero mode</span>
+    Eyes-closed balance is an advanced vestibular challenge, so the app treats it differently
+    from everything else: a gate screen requires "A grown-up is here" before play; the
+    checklist says couch/wall nearby, foot down is always okay, stop any time. The duration is
+    a <strong>fixed 3 seconds</strong> — no options, no records, no personal bests, no streaks —
+    so there is nothing to push toward. It is never a required progression from Tree Timer.
+  </div>
+  <p>
+    The app does <strong>not</strong> try to detect closed eyes. Face landmarks could
+    approximate it, but unreliably — and pointing eye-tracking at a child feels
+    surveillance-like. Instead, a person taps "Start 3 sleepy seconds" and the app counts
+    with <em>audio beeps</em> (the child's eyes are shut, so visual countdowns are useless);
+    pose detection meanwhile only tracks whether the lifted foot stayed up. Both outcomes get
+    warm copy — "the tree wobbled — that's exactly how practice works!".
+  </p>
+
+  <h3>Measurement philosophy</h3>
+  <ul>
+    <li>Foot-downs are counted as playful "lava dips", never as failures; putting the foot
+      down is explicitly framed as always okay.</li>
+    <li>Personal bests (Tree Timer only) are stored in <code>localStorage</code>, per side —
+      local-only like everything else.</li>
+    <li>Left and right are tracked separately wherever it makes sense, since side asymmetry
+      is exactly what a parent/OT wants to see.</li>
+  </ul>
+</section>
+
+<!-- ============================================================ -->
 <section id="files">
-  <h2><span class="num">11</span> File map</h2>
+  <h2><span class="num">12</span> File map</h2>
   <table class="file-tree">
     <tr><th>Path</th><th>Responsibility</th></tr>
     <tr><td>index.ts</td><td>Bun server: serves index.html on port 4321 (HMR in dev)</td></tr>
@@ -788,8 +900,12 @@
     <tr><td>src/pose.ts</td><td>PoseLandmarker singleton (GPU→CPU), landmark indices, skeleton drawing, visibility check</td></tr>
     <tr><td>src/detect.ts</td><td>EventDetector — landmarks in, timestamped movement events out</td></tr>
     <tr><td>src/scorer.ts</td><td>Scorer — event↔beat matching, hits, streaks, offsets</td></tr>
+    <tr><td>src/balance.ts</td><td>Balance game registry, pose predicates (footLifted, isCrouch, isTallTree, isStarfishShape), local personal bests</td></tr>
+    <tr><td>src/sfx.ts</td><td>Standalone sound cues for balance games (blip / beep / chime)</td></tr>
+    <tr><td>src/CameraStage.tsx</td><td>Shared camera + pose loop + skeleton overlay component</td></tr>
     <tr><td>src/Figure.tsx</td><td>SVG stick-figure with per-move poses; BeatDots component</td></tr>
-    <tr><td>src/screens/*.tsx</td><td>Pick · Setup · Demo · Play · Result</td></tr>
+    <tr><td>src/screens/*.tsx</td><td>Pick · Setup · Demo · Play · Result · BalancePick</td></tr>
+    <tr><td>src/screens/balance/*.tsx</td><td>TreeTimer · NightTree · SockMission · StarfishHold · GrowingTree</td></tr>
     <tr><td>src/index.css</td><td>The whole design system (sticker-book aesthetic)</td></tr>
     <tr><td>src/*.test.ts</td><td>Unit tests for scorer and detector (bun test)</td></tr>
     <tr><td>docs/index.html</td><td>This document</td></tr>
@@ -798,7 +914,7 @@
 
 <!-- ============================================================ -->
 <section id="testing">
-  <h2><span class="num">12</span> Testing</h2>
+  <h2><span class="num">13</span> Testing</h2>
   <p>The pure logic — the parts that decide whether a child "did it" — is unit tested with <code>bun test</code>:</p>
   <ul>
     <li><strong>Scorer</strong> (<code>src/scorer.test.ts</code>): in-window matches, out-of-window
@@ -807,6 +923,9 @@
     <li><strong>EventDetector</strong> (<code>src/detect.test.ts</code>): synthetic 33-landmark
       frames verify each rule fires, doesn't re-fire while held, re-arms after release, and that
       hands-overhead is not a clap.</li>
+    <li><strong>Balance predicates</strong> (<code>src/balance.test.ts</code>): foot-lift left/right
+      detection, crouch vs standing, tall-tree requires both standing <em>and</em> arms up, and the
+      starfish shape.</li>
   </ul>
   <p>
     The full loop (camera → round → result) was verified end-to-end in a headless Chromium with
@@ -818,7 +937,7 @@
 
 <!-- ============================================================ -->
 <section id="tuning">
-  <h2><span class="num">13</span> Tuning &amp; extending</h2>
+  <h2><span class="num">14</span> Tuning &amp; extending</h2>
 
   <h3>If detection feels wrong in real use</h3>
   <table>

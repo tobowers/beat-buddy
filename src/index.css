@@ -18,7 +18,9 @@
   --grape-soft: #ede1fc;
   --sun: #ffc53d;
   --sky: #4cc9f0;
+  --sky-soft: #dcf3fc;
   --grass: #57cc75;
+  --grass-soft: #ddf5e4;
 
   --font-display: "Fredoka", sans-serif;
   --font-body: "Nunito", sans-serif;
@@ -108,6 +110,8 @@ button {
 .btn-coral { background: var(--coral); color: #fff; }
 .btn-teal { background: var(--teal); color: #fff; }
 .btn-grape { background: var(--grape); color: #fff; }
+.btn-sky { background: var(--sky); color: #fff; }
+.btn-grass { background: var(--grass); color: #fff; }
 
 .btn-ghost {
   background: transparent;
@@ -139,6 +143,8 @@ button {
 .accent-coral { color: var(--coral); }
 .accent-teal { color: var(--teal); }
 .accent-grape { color: var(--grape); }
+.accent-sky { color: var(--sky); }
+.accent-grass { color: var(--grass); }
 
 /* ============================================================
    PICK SCREEN
@@ -218,6 +224,8 @@ button {
 .game-card.color-coral { box-shadow: 7px 7px 0 var(--coral); }
 .game-card.color-teal { box-shadow: 7px 7px 0 var(--teal); }
 .game-card.color-grape { box-shadow: 7px 7px 0 var(--grape); }
+.game-card.color-sky { box-shadow: 7px 7px 0 var(--sky); }
+.game-card.color-grass { box-shadow: 7px 7px 0 var(--grass); }
 
 .game-card:hover {
   transform: translate(-3px, -3px) rotate(-0.5deg);
@@ -225,6 +233,8 @@ button {
 .game-card.color-coral:hover { box-shadow: 11px 11px 0 var(--coral); }
 .game-card.color-teal:hover { box-shadow: 11px 11px 0 var(--teal); }
 .game-card.color-grape:hover { box-shadow: 11px 11px 0 var(--grape); }
+.game-card.color-sky:hover { box-shadow: 11px 11px 0 var(--sky); }
+.game-card.color-grass:hover { box-shadow: 11px 11px 0 var(--grass); }
 
 .game-diff {
   position: absolute;
@@ -241,6 +251,8 @@ button {
 .color-coral .game-diff { background: var(--coral-soft); }
 .color-teal .game-diff { background: var(--teal-soft); }
 .color-grape .game-diff { background: var(--grape-soft); }
+.color-sky .game-diff { background: var(--sky-soft); }
+.color-grass .game-diff { background: var(--grass-soft); }
 
 .game-figure {
   border-radius: 50%;
@@ -249,6 +261,8 @@ button {
 .color-coral .game-figure { background: var(--coral-soft); }
 .color-teal .game-figure { background: var(--teal-soft); }
 .color-grape .game-figure { background: var(--grape-soft); }
+.color-sky .game-figure { background: var(--sky-soft); }
+.color-grass .game-figure { background: var(--grass-soft); }
 
 .game-name {
   font-size: 1.5rem;
@@ -274,6 +288,8 @@ button {
 .color-coral .game-start { background: var(--coral); }
 .color-teal .game-start { background: var(--teal); }
 .color-grape .game-start { background: var(--grape); }
+.color-sky .game-start { background: var(--sky); }
+.color-grass .game-start { background: var(--grass); }
 
 .privacy-note {
   margin-top: 44px;
@@ -441,6 +457,8 @@ button {
 .demo-stage.color-coral { box-shadow: 8px 8px 0 var(--coral); }
 .demo-stage.color-teal { box-shadow: 8px 8px 0 var(--teal); }
 .demo-stage.color-grape { box-shadow: 8px 8px 0 var(--grape); }
+.demo-stage.color-sky { box-shadow: 8px 8px 0 var(--sky); }
+.demo-stage.color-grass { box-shadow: 8px 8px 0 var(--grass); }
 
 .figure-pop {
   animation: figure-pop 0.35s cubic-bezier(0.34, 1.8, 0.64, 1);
@@ -831,4 +849,206 @@ button {
   justify-content: center;
   gap: 14px;
   margin-top: 20px;
+}
+
+.result-card.color-sky { box-shadow: 10px 10px 0 var(--sky); }
+.result-card.color-grass { box-shadow: 10px 10px 0 var(--grass); }
+
+/* ============================================================
+   BALANCE CHALLENGES
+   ============================================================ */
+
+.balance-banner {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  text-align: left;
+  margin: 40px auto 0;
+  width: min(720px, 100%);
+  background: var(--white);
+  border: 3px solid var(--ink);
+  border-radius: 28px;
+  box-shadow: 7px 7px 0 var(--grass);
+  padding: 18px 26px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  animation: card-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
+}
+.balance-banner:hover {
+  transform: translate(-3px, -3px) rotate(-0.4deg);
+  box-shadow: 11px 11px 0 var(--grass);
+}
+.balance-banner-text { flex: 1; }
+.balance-banner-text h2 { font-size: 1.5rem; font-weight: 700; margin: 2px 0; }
+.balance-banner-text p { margin: 0; font-weight: 700; color: var(--ink-soft); font-size: 0.95rem; }
+.balance-banner-new {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.8rem;
+  background: var(--sun);
+  border: 2.5px solid var(--ink);
+  border-radius: 999px;
+  padding: 2px 12px;
+  transform: rotate(-2deg);
+  display: inline-block;
+}
+.balance-banner-go { background: var(--grass); white-space: nowrap; }
+
+.hero-small { padding: 4px 0 22px; }
+.hero-title-small { font-size: clamp(2.2rem, 7vw, 3.6rem); }
+.hero-title .alt-a { color: var(--grass); }
+.hero-title .alt-b { color: var(--sky); }
+
+.balance-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+
+/* intro helpers */
+.how-list {
+  text-align: left;
+  font-weight: 700;
+  margin: 0;
+  padding-left: 24px;
+  max-width: 420px;
+}
+.how-list li { margin: 5px 0; }
+
+.demo-copy {
+  font-weight: 700;
+  color: var(--ink-soft);
+  max-width: 420px;
+  text-align: center;
+  margin: 0;
+}
+
+.chip-row-center { justify-content: center; }
+
+.safety-list {
+  list-style: none;
+  text-align: left;
+  font-weight: 800;
+  margin: 0;
+  padding: 0;
+  max-width: 430px;
+}
+.safety-list li { margin: 7px 0; }
+
+.gate-note {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  max-width: 440px;
+  text-align: center;
+  margin: 4px 0 0;
+}
+
+/* in-round HUD */
+.big-timer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: var(--white);
+  border: 3px solid var(--ink);
+  border-radius: 22px;
+  padding: 12px 28px;
+  box-shadow: 5px 5px 0 currentColor;
+  animation: label-pop 0.25s ease;
+}
+.big-timer-num {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 3rem;
+  line-height: 1;
+  color: var(--ink);
+}
+.big-timer-label {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: var(--ink);
+}
+
+.side-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  pointer-events: auto;
+}
+.side-chip {
+  font-weight: 800;
+  font-size: 0.85rem;
+  background: rgba(255, 253, 248, 0.92);
+  border: 2.5px solid var(--ink);
+  border-radius: 999px;
+  padding: 5px 14px;
+}
+
+.stage-done-btn { pointer-events: auto; }
+.play-hud-bottom .btn { pointer-events: auto; }
+
+.stage-card {
+  background: var(--white);
+  border: 3px solid var(--ink);
+  border-radius: 22px;
+  padding: 14px 24px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.25rem;
+  max-width: 480px;
+  text-align: center;
+  animation: label-pop 0.3s ease;
+}
+.stage-card.color-grape { box-shadow: 5px 5px 0 var(--grape); }
+
+.night-countin { background: rgba(31, 27, 74, 0.72); }
+
+.hold-bar {
+  width: min(420px, 80%);
+  height: 26px;
+  background: rgba(255, 253, 248, 0.35);
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.hold-bar-fill {
+  height: 100%;
+  background: var(--sky);
+  border-radius: 999px;
+  transition: width 0.15s linear;
+}
+
+/* growing tree */
+.grow-demo {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+}
+.grow-arrow {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--grass);
+  padding-bottom: 30px;
+}
+.grow-stages {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(255, 253, 248, 0.92);
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  padding: 6px 20px;
+}
+.grow-stage {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.95rem;
+  opacity: 0.35;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.grow-stage.on {
+  opacity: 1;
+  transform: scale(1.12);
 }

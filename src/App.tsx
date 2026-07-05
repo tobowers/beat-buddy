@@ -4,11 +4,14 @@ import { Setup } from "./screens/Setup";
 import { Demo } from "./screens/Demo";
 import { Play } from "./screens/Play";
 import { Result } from "./screens/Result";
+import { BalancePick } from "./screens/BalancePick";
+import { BalanceGameScreen } from "./screens/balance";
 import { stopCamera } from "./camera";
 import { gameById } from "./games";
+import type { BalanceGameId } from "./balance";
 import type { GamePattern, RoundResult, Settings } from "./types";
 
-type Screen = "pick" | "setup" | "demo" | "play" | "result";
+type Screen = "pick" | "setup" | "demo" | "play" | "result" | "balance-pick" | "balance";
 
 const SETTINGS_KEY = "beat-buddy-settings";
 
@@ -23,6 +26,7 @@ function loadSettings(): Settings {
 export function App() {
   const [screen, setScreen] = useState<Screen>("pick");
   const [game, setGame] = useState<GamePattern | null>(null);
+  const [balanceId, setBalanceId] = useState<BalanceGameId | null>(null);
   const [settings, setSettings] = useState<Settings>(loadSettings);
   const [result, setResult] = useState<RoundResult | null>(null);
 
@@ -32,9 +36,9 @@ export function App() {
     } catch {}
   }, [settings]);
 
-  // release the camera whenever we're back on the menu
+  // release the camera whenever we're back on a menu
   useEffect(() => {
-    if (screen === "pick") stopCamera();
+    if (screen === "pick" || screen === "balance-pick") stopCamera();
   }, [screen]);
 
   return (
@@ -45,6 +49,23 @@ export function App() {
             setGame(g);
             setScreen("setup");
           }}
+          onBalance={() => setScreen("balance-pick")}
+        />
+      )}
+      {screen === "balance-pick" && (
+        <BalancePick
+          onPick={(id) => {
+            setBalanceId(id);
+            setScreen("balance");
+          }}
+          onBack={() => setScreen("pick")}
+        />
+      )}
+      {screen === "balance" && balanceId && (
+        <BalanceGameScreen
+          key={balanceId}
+          id={balanceId}
+          onBack={() => setScreen("balance-pick")}
         />
       )}
       {screen === "setup" && game && (

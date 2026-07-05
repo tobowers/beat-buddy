@@ -14,6 +14,17 @@ and the app gives simple, forgiving feedback — beat hits and streaks, never "w
 Each game has three settings: speed (50/60/75 BPM), round length (20/30/60s), and
 feedback mode (Gentle / Score / Quiet).
 
+## Balance Challenges
+
+A second game category (no metronome — timers, holds, and reps):
+
+- **Tree Timer** — one-foot balance, eyes open; auto-timed holds per side with local personal bests
+- **Standing Starfish** — hold the big starfish shape still until the bar fills, ×3
+- **Growing Tree** — seed → slow rise → tall tree held 3s, ×5; slow rises get extra cheers
+- **Sock Mission** — sock off and back on while balancing; tracks time and "lava dips" per foot
+- **Night Tree** — eyes closed for a fixed 3 seconds; grown-up-gated, audio-beep countdown,
+  no records and no pushing by design
+
 ## Run it
 
 ```sh

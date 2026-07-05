@@ -1,7 +1,13 @@
 import React from "react";
 import type { MovementEvent } from "./types";
 
-export type FigurePose = MovementEvent | "idle";
+export type FigurePose =
+  | MovementEvent
+  | "idle"
+  | "TREE"
+  | "SOCK"
+  | "SEED"
+  | "TALL_TREE";
 
 type XY = [number, number];
 
@@ -57,6 +63,37 @@ const POSES: Record<FigurePose, Joints> = {
     eR: [74, 22], wR: [86, 11],
     kL: [35, 86], aL: [26, 108],
     kR: [65, 86], aR: [74, 108],
+  },
+  // one-foot balance: right foot tucked to the standing leg, arms out
+  TREE: {
+    ...IDLE,
+    eL: [26, 38], wL: [16, 26],
+    eR: [74, 38], wR: [84, 26],
+    kR: [66, 76], aR: [54, 84],
+  },
+  // reaching both hands to a lifted foot (sock on/off)
+  SOCK: {
+    ...IDLE,
+    kR: [62, 66], aR: [68, 80],
+    eL: [40, 52], wL: [64, 76],
+    eR: [70, 54], wR: [70, 78],
+    touch: [68, 79],
+  },
+  // crouched like a tiny seed
+  SEED: {
+    head: [50, 52], neck: [50, 63],
+    sL: [39, 66], eL: [32, 78], wL: [42, 92],
+    sR: [61, 66], eR: [68, 78], wR: [58, 92],
+    hL: [44, 86], kL: [34, 88], aL: [38, 108],
+    hR: [56, 86], kR: [66, 88], aR: [62, 108],
+  },
+  // grown tall: legs together, branches (arms) reaching up
+  TALL_TREE: {
+    ...IDLE,
+    eL: [31, 18], wL: [40, 3],
+    eR: [69, 18], wR: [60, 3],
+    hL: [45, 64], kL: [45, 87], aL: [45, 109],
+    hR: [55, 64], kR: [55, 87], aR: [55, 109],
   },
 };
 

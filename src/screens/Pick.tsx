@@ -9,7 +9,13 @@ const PREVIEW_POSE = {
   "clap-knee": "CLAP",
 } as const;
 
-export function Pick({ onPick }: { onPick: (game: GamePattern) => void }) {
+export function Pick({
+  onPick,
+  onBalance,
+}: {
+  onPick: (game: GamePattern) => void;
+  onBalance: () => void;
+}) {
   return (
     <div className="screen pick-screen">
       <header className="hero">
@@ -44,6 +50,16 @@ export function Pick({ onPick }: { onPick: (game: GamePattern) => void }) {
           </button>
         ))}
       </div>
+
+      <button className="balance-banner" onClick={onBalance}>
+        <Figure pose="TREE" size={84} accent="var(--grass)" />
+        <div className="balance-banner-text">
+          <span className="balance-banner-new">New!</span>
+          <h2>Balance Challenges</h2>
+          <p>Tree holds, sock missions, growing trees — no metronome, just steady bodies.</p>
+        </div>
+        <span className="game-start balance-banner-go">Let's balance ➜</span>
+      </button>
 
       <footer className="privacy-note">
         <strong>For grown-ups:</strong> camera video stays on this device. The app uses the
