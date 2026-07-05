@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { getCameraStream } from "../camera";
-import { getPoseLandmarker, drawSkeleton, fullBodyVisible } from "../pose";
+import { getPoseLandmarker, drawSkeleton, fullBodyVisible, toAnatomical } from "../pose";
 import { EventDetector } from "../detect";
 import { Metronome } from "../metronome";
 import { Scorer, type BeatSpec } from "../scorer";
@@ -71,7 +71,7 @@ export function Play({
         lastTime = video.currentTime;
         const now = performance.now();
         const result = landmarker.detectForVideo(video, now);
-        const lm = result.landmarks?.[0];
+        const lm = toAnatomical(result.landmarks?.[0]);
         setBodyOk(fullBodyVisible(lm));
 
         const canvas = canvasRef.current;

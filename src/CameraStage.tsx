@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { getCameraStream } from "./camera";
-import { getPoseLandmarker, drawSkeleton, type NormalizedLandmark } from "./pose";
+import { getPoseLandmarker, drawSkeleton, toAnatomical, type NormalizedLandmark } from "./pose";
 
 /**
  * Camera + pose loop + skeleton overlay in one component. Balance games put
@@ -42,7 +42,7 @@ export function CameraStage({
         lastTime = video.currentTime;
         const now = performance.now();
         const result = landmarker.detectForVideo(video, now);
-        const lm = result.landmarks?.[0];
+        const lm = toAnatomical(result.landmarks?.[0]);
 
         const canvas = canvasRef.current;
         if (canvas && video.videoWidth) {

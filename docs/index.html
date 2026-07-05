@@ -453,8 +453,11 @@
     <span class="label">Mirror convention</span>
     The demo figure and camera view are both mirrored like a bathroom mirror: the child's
     <em>left</em> hand corresponds to the limb on the <em>viewer's left</em>. The video and canvas
-    get <code>transform: scaleX(-1)</code>; detection logic uses the person's own left/right
-    landmarks, so mirroring never affects scoring.
+    get <code>transform: scaleX(-1)</code>. One gotcha: MediaPipe's pose model labels sides
+    selfie-style, so with the unmirrored frames we feed it, its "left wrist" actually tracks the
+    player's <em>right</em> hand. <code>toAnatomical()</code> in <code>pose.ts</code> swaps every
+    left/right landmark pair once at ingestion, so all downstream code (detection, balance
+    predicates, per-side records) reads the child's true anatomical sides.
   </div>
 </section>
 

@@ -20,6 +20,28 @@ export const LM = {
   rightAnkle: 28,
 } as const;
 
+// MediaPipe's pose model labels sides selfie-style: with our unmirrored
+// camera frames, the model's "left wrist" tracks the player's RIGHT hand.
+// Swap every left/right landmark pair once at ingestion so downstream code
+// (detection, balance predicates, per-side records) reads true anatomy.
+const SIDE_PAIRS: [number, number][] = [
+  [1, 4], [2, 5], [3, 6], [7, 8], [9, 10],
+  [11, 12], [13, 14], [15, 16], [17, 18], [19, 20], [21, 22],
+  [23, 24], [25, 26], [27, 28], [29, 30], [31, 32],
+];
+
+export function toAnatomical(
+  lm: NormalizedLandmark[] | undefined,
+): NormalizedLandmark[] | undefined {
+  if (!lm || lm.length < 33) return lm;
+  const out = lm.slice();
+  for (const [a, b] of SIDE_PAIRS) {
+    out[a] = lm[b]!;
+    out[b] = lm[a]!;
+  }
+  return out;
+}
+
 const WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm";
 const MODEL_URL =
   "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task";
