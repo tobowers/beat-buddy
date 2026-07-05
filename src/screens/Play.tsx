@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { getCameraStream } from "../camera";
 import { getPoseLandmarker, drawSkeleton, fullBodyVisible, toAnatomical } from "../pose";
-import { EventDetector } from "../detect";
+import { EventDetector, isHug } from "../detect";
 import { Metronome } from "../metronome";
+import { chime } from "../sfx";
 import { Scorer, type BeatSpec } from "../scorer";
 import { Figure, BeatDots } from "../Figure";
 import type { GamePattern, RoundResult, Settings } from "../types";
@@ -32,11 +33,13 @@ export function Play({
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [status, setStatus] = useState<"loading" | "playing" | "error">("loading");
+  const [waiting, setWaiting] = useState(true);
   const [beatIdx, setBeatIdx] = useState(-1);
   const [hits, setHits] = useState(0);
   const [flash, setFlash] = useState(0);
   const [bodyOk, setBodyOk] = useState(true);
   const [cheer, setCheer] = useState(0);
+  const startRoundRef = useRef<() => void>(() => {});
 
   const len = game.steps.length;
   const bpm = BPM[settings.speed];
@@ -62,8 +65,40 @@ export function Play({
       if (cancelled) return;
       setStatus("playing");
 
-      // --- pose loop: detect landmarks, fire movement events into the scorer ---
+      // --- metronome round: 4 count-in beats, then the scored round.
+      //     Starts on the hug gesture (or the fallback button). ---
+      let started = false;
+      const startRound = () => {
+        if (started || cancelled) return;
+        started = true;
+        setWaiting(false);
+        chime();
+        const beats = met.start({
+          bpm,
+          totalBeats: COUNT_IN + scoredCount,
+          accentEvery: len,
+          onBeat: (i) => setBeatIdx(i),
+        });
+        const specs: BeatSpec[] = beats.slice(COUNT_IN).map((b, j) => ({
+          index: b.index,
+          perfTime: b.perfTime,
+          expected: game.steps[j % len]!.expected,
+        }));
+        scorer = new Scorer(specs, TIMING_WINDOW_MS);
+
+        const last = beats[beats.length - 1]!;
+        const endDelay = last.perfTime - performance.now() + TIMING_WINDOW_MS + 350;
+        endTimeout = setTimeout(() => {
+          if (cancelled) return;
+          const final = scorer!.finalize();
+          onDone({ gameId: game.id, ...final });
+        }, endDelay);
+      };
+      startRoundRef.current = startRound;
+
+      // --- pose loop: wait for the hug, then fire movement events into the scorer ---
       let lastTime = -1;
+      let hugSince: number | null = null;
       const loop = () => {
         if (cancelled) return;
         raf = requestAnimationFrame(loop);
@@ -85,6 +120,17 @@ export function Play({
           else ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
+        if (!started) {
+          // hold the hug briefly so a passing arm-cross doesn't trigger it
+          if (isHug(lm)) {
+            if (hugSince === null) hugSince = now;
+            else if (now - hugSince > 600) startRound();
+          } else {
+            hugSince = null;
+          }
+          return;
+        }
+
         if (lm && scorer) {
           for (const ev of detector.update(lm, now)) {
             const matched = scorer.addEvent(ev, now);
@@ -97,28 +143,6 @@ export function Play({
         }
       };
       loop();
-
-      // --- metronome: 4 count-in beats, then the scored round ---
-      const beats = met.start({
-        bpm,
-        totalBeats: COUNT_IN + scoredCount,
-        accentEvery: len,
-        onBeat: (i) => setBeatIdx(i),
-      });
-      const specs: BeatSpec[] = beats.slice(COUNT_IN).map((b, j) => ({
-        index: b.index,
-        perfTime: b.perfTime,
-        expected: game.steps[j % len]!.expected,
-      }));
-      scorer = new Scorer(specs, TIMING_WINDOW_MS);
-
-      const last = beats[beats.length - 1]!;
-      const endDelay = last.perfTime - performance.now() + TIMING_WINDOW_MS + 350;
-      endTimeout = setTimeout(() => {
-        if (cancelled) return;
-        const final = scorer!.finalize();
-        onDone({ gameId: game.id, ...final });
-      }, endDelay);
     })().catch((err) => {
       console.error(err);
       if (!cancelled) setStatus("error");
@@ -165,6 +189,16 @@ export function Play({
         {/* hit star burst */}
         {flash > 0 && (
           <div key={`hit-${flash}`} className="hit-burst">★</div>
+        )}
+
+        {status === "playing" && waiting && (
+          <div className="hug-wait">
+            <Figure pose="HUG" size={settings.bigUi ? 190 : 130} accent={`var(--${game.color})`} pop />
+            <p className="hug-wait-label">Give yourself a big hug to start!</p>
+            <button className="btn hug-wait-btn" onClick={() => startRoundRef.current()}>
+              or tap here
+            </button>
+          </div>
         )}
 
         {inCountIn && (

@@ -442,8 +442,10 @@
       <td>The metronome plays at the chosen BPM while an animated SVG stick figure performs the
       pattern, one move per beat, looping until the child taps "I'm ready".</td></tr>
     <tr><td><strong>Play</strong></td><td><code>screens/Play.tsx</code></td>
-      <td>The real round: 4-beat count-in, then camera + metronome + scoring together.
-      Shows the current expected move, beat pulse, timer, and (in Score mode) a hit counter.</td></tr>
+      <td>The real round. Starts hands-free: hold a self-hug for ~0.6s (each wrist near the
+      opposite shoulder — <code>isHug()</code> in <code>detect.ts</code>), or tap the fallback
+      button. Then a 4-beat count-in and camera + metronome + scoring together. Shows the
+      current expected move, beat pulse, timer, and (in Score mode) a hit counter.</td></tr>
     <tr><td><strong>Result</strong></td><td><code>screens/Result.tsx</code></td>
       <td>Stars, encouragement tier, and stats appropriate to the feedback mode. Confetti at
       ≥70%. Buttons: play again, try it slower, pick another game.</td></tr>

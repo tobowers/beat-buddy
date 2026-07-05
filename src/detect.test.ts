@@ -1,5 +1,5 @@
 import { test, expect } from "bun:test";
-import { EventDetector } from "./detect";
+import { EventDetector, isHug } from "./detect";
 import type { NormalizedLandmark } from "./pose";
 
 /** Build a full 33-landmark frame from a base standing pose, with overrides. */
@@ -30,6 +30,22 @@ function frame(overrides: Record<number, { x: number; y: number }> = {}): Normal
   }
   return lm;
 }
+
+test("standing with arms down is not a hug", () => {
+  expect(isHug(frame())).toBe(false);
+  expect(isHug(undefined)).toBe(false);
+});
+
+test("wrists wrapped to opposite shoulders is a hug", () => {
+  // left wrist (15) on right shoulder (12), right wrist (16) on left shoulder (11)
+  const hug = frame({ 15: { x: 0.59, y: 0.31 }, 16: { x: 0.41, y: 0.31 } });
+  expect(isHug(hug)).toBe(true);
+});
+
+test("a clap in front of the chest is not a hug", () => {
+  const clap = frame({ 15: { x: 0.49, y: 0.45 }, 16: { x: 0.51, y: 0.45 } });
+  expect(isHug(clap)).toBe(false);
+});
 
 test("standing still fires nothing", () => {
   const d = new EventDetector();

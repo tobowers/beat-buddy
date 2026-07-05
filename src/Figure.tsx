@@ -7,7 +7,8 @@ export type FigurePose =
   | "TREE"
   | "SOCK"
   | "SEED"
-  | "TALL_TREE";
+  | "TALL_TREE"
+  | "HUG";
 
 type XY = [number, number];
 
@@ -86,6 +87,13 @@ const POSES: Record<FigurePose, Joints> = {
     sR: [61, 66], eR: [68, 78], wR: [58, 92],
     hL: [44, 86], kL: [34, 88], aL: [38, 108],
     hR: [56, 86], kR: [66, 88], aR: [62, 108],
+  },
+  // arms wrapped across the chest, each hand on the opposite shoulder
+  HUG: {
+    ...IDLE,
+    eL: [43, 53], wL: [61, 36],
+    eR: [57, 50], wR: [39, 34],
+    touch: [50, 44],
   },
   // grown tall: legs together, branches (arms) reaching up
   TALL_TREE: {

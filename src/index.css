@@ -636,6 +636,40 @@ button {
   animation: label-pop 0.3s ease;
 }
 
+.hug-wait {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: rgba(51, 51, 92, 0.45);
+  z-index: 6;
+}
+
+.hug-wait-label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  color: var(--white);
+  text-shadow: 3px 3px 0 var(--ink);
+  margin: 0;
+  text-align: center;
+  padding: 0 20px;
+  animation: label-pop 0.3s ease;
+}
+
+.hug-wait-btn {
+  font-size: 0.95rem;
+  padding: 8px 20px;
+  opacity: 0.85;
+}
+
+.big-ui .hug-wait-label {
+  font-size: clamp(2.2rem, 7vw, 3.4rem);
+}
+
 .play-hud-top {
   position: absolute;
   top: 14px;

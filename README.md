@@ -11,8 +11,10 @@ and the app gives simple, forgiving feedback — beat hits and streaks, never "w
 - **Starfish Cross** — big starfish shape, then opposite hand to knee
 - **Clap-Knee** — clap, then opposite hand to knee
 
-Each game has three settings: speed (50/60/75 BPM), round length (20/30/60s), and
-feedback mode (Gentle / Score / Quiet).
+Each game has settings for speed (50/60/75 BPM), round length (20/30/60s), feedback
+mode (Gentle / Score / Quiet), huge far-from-screen text, and move pictures. Rounds
+start hands-free: stand in position and give yourself a hug (a fallback button
+remains for grown-ups).
 
 ## Balance Challenges
 

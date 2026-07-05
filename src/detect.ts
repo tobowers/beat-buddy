@@ -8,6 +8,23 @@ function dist(a: Pt, b: Pt): number {
 }
 
 /**
+ * Self-hug: each wrist wrapped to the opposite shoulder. Used as the
+ * hands-free "start the round" gesture — distinct from every game move.
+ */
+export function isHug(lm: NormalizedLandmark[] | undefined): boolean {
+  if (!lm || lm.length < 33) return false;
+  const ls = lm[LM.leftShoulder]!;
+  const rs = lm[LM.rightShoulder]!;
+  const lh = lm[LM.leftHip]!;
+  const rh = lm[LM.rightHip]!;
+  const lw = lm[LM.leftWrist]!;
+  const rw = lm[LM.rightWrist]!;
+  const torso = (dist(ls, lh) + dist(rs, rh)) / 2;
+  if (torso < 0.05) return false;
+  return dist(lw, rs) < 0.4 * torso && dist(rw, ls) < 0.4 * torso;
+}
+
+/**
  * Edge-triggered movement event detector with hysteresis.
  *
  * Each event fires once when its condition becomes true, then re-arms only
